@@ -233,7 +233,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
         await setDoc(doc(db, 'profiles', u.uid), row, { merge: true });
         if (patch.nickname) await authMod.updateProfile(u, { displayName: patch.nickname });
         return { ok: true };
-      } catch (e) { return { ok: false, error: humanError(e) }; },
+      } catch (e) { return { ok: false, error: humanError(e) }; }
     },
 
     /** 將第一個帳號登記為擁有者（管理員）— 規則僅允許在「不存在時」執行 1 次 */
@@ -247,7 +247,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
         if (r === TIMEOUT) return { ok: false, error: NO_REACH };
         ownerCache = undefined;   // 剛剛成為管理員，因此重新判定
         return { ok: true };
-      } catch (e) { return { ok: false, error: humanError(e) }; },
+      } catch (e) { return { ok: false, error: humanError(e) }; }
     },
 
     async listMembers() {

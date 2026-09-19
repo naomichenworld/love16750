@@ -49,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         {/* 防止 Whale・Chrome 的「網頁內容深色模式」（強制變暗）重新繪製頁面（v2.0 使用者回報）。
             與 CSS 的 color-scheme 是相同的宣告，但為了讓它從樣式載入前的第一次繪製就套用，也以 meta 放置 */}

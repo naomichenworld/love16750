@@ -3206,12 +3206,12 @@ function SettingsInner() {
   const { isAdmin } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const [tab, setTabState] = useState<(typeof CATEGORIES)[number]>('디자인');
+  const [tab, setTabState] = useState<(typeof CATEGORIES)[number]>('設計');
   // 分頁網址 (v1.9 使用者要求) — /settings?tab=…：可透過返回鍵回到上一個分頁，也可從會員詳細頁返回等
   const urlTab = params.get('tab');
   useEffect(() => {
     if (urlTab && (CATEGORIES as readonly string[]).includes(urlTab)) setTabState(urlTab as (typeof CATEGORIES)[number]);
-    else if (!urlTab) setTabState('디자인');
+    else if (!urlTab) setTabState('設計');
   }, [urlTab]);
   const setTab = (t: (typeof CATEGORIES)[number]) => {
     setTabState(t);
@@ -3314,37 +3314,37 @@ function SettingsInner() {
           ))}
         </div>
         <div className="panel" style={{ padding: 26 }}>
-          {tab === '디자인' ? (
+          {tab === '設計' ? (
             <DesignPane />
-          ) : tab === '메인 페이지' ? (
+          ) : tab === '主頁' ? (
             <MainPagePane />
-          ) : tab === '위젯' ? (
+          ) : tab === 'Widget' ? (
             <WidgetsPane />
-          ) : tab === '메뉴 관리' ? (
+          ) : tab === '選單管理' ? (
             <MenuPane />
-          ) : tab === '게시판 관리' ? (
+          ) : tab === '留言板管理' ? (
             <BoardPane />
-          ) : tab === '자관 질문' ? (
+          ) : tab === '自設關係問題' ? (
             <RelQPane />
-          ) : tab === '커미션' ? (
+          ) : tab === '委託' ? (
             <CommPane />
           ) : tab === 'TRPG' ? (
             <TrpgPane />
-          ) : tab === '감상타래' ? (
+          ) : tab === '感想串' ? (
             <ThreadPane />
-          ) : tab === '메모장' ? (
+          ) : tab === '記事本' ? (
             <MemoPane />
-          ) : tab === '무드 리스트' ? (
+          ) : tab === '心情列表' ? (
             <MoodPane />
           ) : tab === 'BGM' ? (
             <BgmPane />
-          ) : tab === '폰트' ? (
+          ) : tab === '字型' ? (
             <FontPane />
-          ) : tab === '마우스 커서' ? (
+          ) : tab === '滑鼠游標' ? (
             <CursorPane />
-          ) : tab === '회원/보안' ? (
+          ) : tab === '會員／安全' ? (
             <MemberPane />
-          ) : tab === '데이터 백업' ? (
+          ) : tab === '資料備份' ? (
             <DataPane />
           ) : (
             <div className="set-sec">
