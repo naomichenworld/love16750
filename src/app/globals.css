@@ -1,0 +1,1809 @@
+/* ==========================================================
+   個人首頁 — 全域樣式（第 0 階段骨架）
+   繼承原型（個人首頁_原型_2.html）的 class・樣式。
+   主題變數由 ThemeProvider 以 :root inline 覆寫（企劃書 5.1）
+   ========================================================== */
+/* 深色支援標記（v2.0）— 用來讓強制深色引擎判定「此網站自行支援深色模式」並跳過處理。
+   顏色全部由主題設定明確指定，因此實際渲染不會產生變化 */
+@media (prefers-color-scheme: dark){:root{--os-dark:1}}
+:root{
+  /* 防止瀏覽器強制深色（Whale・Chrome 自動深色）擅自重新繪製頁面（v2.0 使用者回報 —
+     「Whale 深色主題下卡片背景色不一致」）。顏色全部由主題設定直接管理。
+     Whale 會忽略這個 opt-out，因此只有 Whale 會由 layout 的 inline script
+     覆寫為 light dark（宣告支援深色模式）— 下方空白的 prefers-color-scheme 規則是用來
+     作為「自行支援深色模式的網站」判定標記 */
+  color-scheme:only light;
+  --steel-1:#1a1d22; --steel-2:#2b3038; --steel-3:#3c434d;
+  --panel:rgba(252,252,253,.94); --panel-solid:#fbfbfc;
+  --ink:#1d2025; --sub:#5d636d; --faint:#9aa0a9;
+  --line:#e2e4e8; --line-dark:rgba(255,255,255,.14);
+  --gold:#b39b6b;
+  /* 原始字體堆疊（不可變）— 角色字體（--sans/--serif/--font-menu）可在環境設定 > 設計中重新指定 */
+  --serif-base:'Cormorant Garamond','Noto Serif KR',serif;
+  --sans-base:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --serif:var(--serif-base);
+  --sans:var(--sans-base);
+  /* 角色字體大小倍率 — 所有 font-size 都使用 calc(Npx*var(--fs,1)) 形式，--fs 可依區域重新指定 */
+  --fs:var(--fs-body,1);
+  /* 主題變數 — 在環境設定 > 設計中修改（預設 = 深色模式） */
+  --bg-g1:#2b3038; --bg-g2:#121418;
+  --top-bg:rgba(20,22,27,.82); --top-fg:#aab0ba; --top-hv:#ffffff; --top-brand:#f2f3f5;
+  --dd-bg:rgba(28,31,37,.97); --dd-fg:#c6cad1; --dd-hv:rgba(255,255,255,.1);
+  --page-title:#eceef1; --page-desc:#9aa0a9;
+  --bgm-bg:rgba(22,24,29,.9); --bgm-fg:#eef0f3; --bgm-ic:#cfd3da; --bgm-vol:#e8eaee;
+  --sb-thumb:#565d68; --sb-bd:#1a1d22;
+  --search-bg:#232830; --search-fg:#e8eaee; --search-ic:#8b919b; --search-bd:#3a404a;
+  --accent:#a63a45; --accent-soft:#c96a73;
+  --radius:14px; --radius-s:9px;
+  /* 區塊陰影（可在環境設定 > 設計中調整強度）· --sh-dd = 下拉選單專用強度 */
+  --sh-sm:0 8px 26px rgba(0,0,0,.22); --sh-md:0 10px 40px rgba(0,0,0,.25); --sh-lg:0 24px 70px rgba(0,0,0,.5);
+  --sh-dd:0 14px 40px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* 自訂捲軸（第 7 章 — 主題連動） */
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--sb-thumb);border-radius:9px;border:2px solid var(--sb-bd)}
+html,#appMain{scrollbar-color:var(--sb-thumb) transparent;scrollbar-width:thin}
+
+/* App 外殼（v1.8）：固定標頭＋只在內容區域內捲動 */
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{flex-shrink:0}
+#appMain{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-gutter:stable} /* 避免有無捲軸造成內容左右移動 */
+body{
+  font-family:var(--sans);color:var(--ink);letter-spacing:-.01em;
+  font-weight:var(--fw-body,400);
+  background:
+    radial-gradient(1100px 500px at 50% -10%,rgba(255,255,255,.10),transparent 60%),
+    linear-gradient(var(--bg-angle,180deg),var(--bg-g1) 0%,var(--bg-g2) 100%); /* 角度 = 環境設定（v1.9） */
+  background-attachment:fixed;
+}
+/* 背景圖片圖層（v1.9）— 位於漸層上方、內容下方，模糊稍微向外擴張以避免邊緣暈開 */
+body::before{
+  content:"";position:fixed;z-index:-1;inset:calc(var(--bg-blur,0px)*-2);
+  background-image:var(--bg-image,none);background-size:cover;background-position:center;
+  filter:blur(var(--bg-blur,0px));pointer-events:none;
+}
+button{font-family:inherit;cursor:var(--cur-pointer,pointer);border:none;background:none;color:inherit}
+/* 即使瀏覽器預設為 pointer 的元素也透過自訂游標變數（5.1 v1.9） */
+a,select,summary{cursor:var(--cur-pointer,pointer)}
+input,textarea,select{font-family:inherit}
+img{display:block}
+a{color:inherit;text-decoration:none}
+
+/* ---------- 上方選單 ---------- */
+.topbar{
+  position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:22px;
+  padding:0 26px;height:58px;color:#e8eaee;
+  background:var(--top-bg);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line-dark);
+}
+.brand{font-family:var(--serif);font-size:calc(21px*var(--fs,1));letter-spacing:.32em;font-weight:600;color:var(--top-brand);cursor:var(--cur-pointer,pointer);white-space:nowrap}
+.brand small{display:block;font-family:var(--font-logosub,var(--sans));font-weight:var(--fw-logosub,400);font-size:calc(8.5px*var(--fs,1)*var(--fs-logosub,1));letter-spacing:.42em;color:#8d939d;margin-top:-2px}
+.brand small.al-left{text-align:left}.brand small.al-center{text-align:center}.brand small.al-right{text-align:right}
+.gnb{display:flex;gap:2px;flex:1;min-width:0;position:relative;--fs:var(--fs-menu,1)} /* min-width:0 — 按可用寬度直接測量（⋯ 收納計算，v1.9） */
+.gnb button,.gnb a.gnb-link{
+  display:inline-block;padding:7px 13px;font-size:calc(12.5px*var(--fs,1));color:var(--top-fg);border-radius:8px;white-space:nowrap;
+  transition:.18s;letter-spacing:.02em;
+  font-family:var(--font-menu,var(--sans)); /* 選單字體（環境設定 > 設計） */
+  font-weight:var(--fw-menu,400);
+}
+.gnb button:hover,.gnb a.gnb-link:hover{color:var(--top-hv,#fff);background:rgba(255,255,255,.07)}
+.gnb button.on,.gnb a.gnb-link.on{color:var(--top-hv,#fff);background:rgba(255,255,255,.12)}
+/* 階層選單（上層 → 懸停下拉選單，第 3 章） */
+.grp{position:relative}
+.grp > button::after{content:" ▾";font-size:calc(8px*var(--fs,1));color:#7a808a}
+.grp .sub{
+  position:absolute;left:0;top:calc(100% + 4px);min-width:132px;display:none;z-index:75;
+  background:var(--dd-bg);border:1px solid var(--line-dark);border-radius:11px;padding:5px;
+  box-shadow:var(--sh-dd); /* 下拉選單專用陰影（環境設定 > 設計） */
+}
+.grp:hover .sub,.grp.open .sub{display:block;animation:fade .15s}
+.grp .sub::before{content:"";position:absolute;top:-8px;left:0;right:0;height:8px}
+.grp .sub{--fs:var(--fs-dropdown,1)}
+.grp .sub button,.grp .sub a{display:block;width:100%;text-align:left;padding:8px 12px;font-size:calc(12px*var(--fs,1));border-radius:7px;color:var(--dd-fg);transition:.13s;font-family:var(--font-dropdown,var(--sans));font-weight:var(--fw-dropdown,400)}
+.grp .sub button:hover,.grp .sub a:hover{background:var(--dd-hv)}
+/* 上層選單無限制（v1.9）— 超出選單列的項目會收進 ⋯ 下拉選單（priority+） */
+.grp.more>button::after{content:""}
+.grp .sub{max-height:72vh;overflow:auto}
+/* 懸停橋接 — .sub 出現 overflow 後，.sub::before（-8px 橋接）會被裁切，因此在 .grp 上固定橋接（v1.9） */
+.grp::after{content:"";position:absolute;left:0;top:100%;width:100%;height:9px}
+.grp .sub .sub-cap{padding:8px 12px 3px;font-size:calc(9.5px*var(--fs,1));color:color-mix(in srgb,var(--dd-fg) 55%,transparent);letter-spacing:.14em;font-weight:700}
+.grp .sub .sub-grp+.sub-grp,.grp .sub button+.sub-grp,.grp .sub .sub-grp+button{border-top:1px solid var(--line-dark);margin-top:4px;padding-top:2px;display:block}
+.gnb-measure{position:absolute;visibility:hidden;pointer-events:none;height:0;overflow:hidden;left:0;top:0}
+/* 右上角使用者區域 */
+.user-wrap{position:relative}
+.user-chip{display:flex;align-items:center;gap:10px;font-size:calc(12px*var(--fs,1));color:var(--top-fg);white-space:nowrap;cursor:var(--cur-pointer,pointer);padding:6px 10px;border-radius:9px;transition:.15s}
+.user-chip:hover{background:rgba(255,255,255,.08)}
+.user-chip .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6b7280,#3c434d);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;color:#fff;font-size:calc(12px*var(--fs,1));font-weight:700;overflow:hidden}
+.user-menu{
+  position:absolute;right:0;top:calc(100% + 8px);min-width:132px;display:none;z-index:80;
+  background:var(--dd-bg);border:1px solid var(--line-dark);border-radius:11px;padding:5px;
+  box-shadow:var(--sh-dd);
+}
+.user-menu.open{display:block;animation:fade .16s}
+.user-menu button{display:block;width:100%;text-align:left;padding:9px 12px;font-size:calc(12px*var(--fs,1));color:var(--dd-fg);border-radius:7px;transition:.13s}
+.user-menu button:hover{background:var(--dd-hv)}
+/* 編輯模式顯示（網格切換・編輯中標記 — 4.0） */
+.k-toggle.grid-chip{display:none;align-items:center;gap:7px;font-size:calc(11px*var(--fs,1));color:var(--top-fg);white-space:nowrap;cursor:var(--cur-pointer,pointer);padding:4px 9px;border-radius:999px;transition:.18s}
+.k-toggle.grid-chip.show{display:inline-flex}
+.grid-chip .tr{background:#565d68}
+/* 防止開啟狀態在深色標頭中被淹沒 — 重點色軌道＋明亮標籤＋Chip 背景（原本 on 色 --ink 會與深色標頭融為一體）
+   加上 .k-toggle，使其優先於後面的預設 on 規則（--ink） */
+.k-toggle.grid-chip input:checked + .tr{background:var(--accent)}
+.grid-chip:has(input:checked){color:var(--top-hv);background:rgba(127,127,127,.14)} /* 讓淺色標頭也能看見 — 使用主題文字顏色 */
+.grid-chip:has(input:checked) .tr{box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent)}
+.edit-flag{display:none;font-size:calc(10px*var(--fs,1));color:var(--accent-soft);letter-spacing:.1em;border:1px solid rgba(201,106,115,.4);padding:3px 9px;border-radius:9px;white-space:nowrap;cursor:var(--cur-pointer,pointer)}
+.edit-flag.show{display:inline-block}
+/* 通知鈴 — 線條圖示，與上方選單文字顏色連動（v1.9） */
+/* 選單通知圓點（4.13）— 未讀通知所對應的選單上顯示 */
+.gnb .nd{color:var(--accent);font-size:7px;vertical-align:top;margin-left:4px}
+/* 通知下拉選單（4.13） */
+.notif-menu{width:260px;max-height:420px;overflow:auto}
+.notif-menu .nh{display:flex;justify-content:space-between;align-items:center;padding:4px 12px 8px;border-bottom:1px solid rgba(127,127,127,.18);margin-bottom:4px}
+.notif-menu .nh b{font-size:calc(12px*var(--fs,1));letter-spacing:.08em;color:var(--dd-fg)}
+.notif-menu .nh .all{width:auto;padding:3px 8px;font-size:calc(10.5px*var(--fs,1));color:var(--accent)}
+.notif-menu .empty{padding:14px 12px;font-size:calc(11.5px*var(--fs,1));color:var(--faint)}
+.notif-menu .nt{display:block}
+.notif-menu .nt b{display:block;font-size:calc(11.5px*var(--fs,1));font-weight:700}
+.notif-menu .nt span{display:block;font-size:calc(10.5px*var(--fs,1));opacity:.75;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notif-menu .nt small{display:block;font-size:calc(9.5px*var(--fs,1));opacity:.55;margin-top:3px}
+.notif-menu .nt.rd{opacity:.48}
+.notif-menu .nset{border-top:1px solid rgba(127,127,127,.18);margin-top:6px;padding:8px 12px 4px;display:grid;gap:7px}
+.notif-menu .nset .row{display:flex;justify-content:space-between;align-items:center;font-size:calc(11px*var(--fs,1));color:var(--dd-fg);cursor:default}
+/* 開啟狀態使用重點色（v2.0 Fork 回報 —「分不清楚是開啟還是關閉」）。
+   原本的開啟顏色（--ink 黑色膠囊）在深色下拉背景中不明顯，無法與關閉（灰色）區分 */
+.notif-menu .k-toggle input:checked + .tr{background:var(--accent)}
+.badge-dot{position:relative;color:var(--top-fg);display:grid;place-items:center;width:32px;height:32px;border-radius:9px;transition:.15s}
+.badge-dot:hover{color:var(--top-hv,#fff)}
+.badge-dot svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block}
+.badge-dot[data-n]:not([data-n="0"])::after{content:attr(data-n);position:absolute;top:-3px;right:-4px;background:var(--accent);color:#fff;font-size:calc(9px*var(--fs,1));font-weight:700;width:15px;height:15px;border-radius:50%;display:grid;place-items:center;line-height:1;font-family:var(--sans);letter-spacing:0}
+.login-link{font-size:calc(12px*var(--fs,1));color:var(--top-fg);padding:7px 15px;border:1px solid var(--line-dark);border-radius:999px;transition:.15s;white-space:nowrap}
+.login-link:hover{color:var(--top-hv,#fff);border-color:var(--top-hv,#fff)}
+
+/* 圖片儲存防護（v1.9）— 在防護區域中阻止拖曳圖片匯出（ImgProtect 會切換 html） */
+.img-protect-on img{-webkit-user-drag:none;user-select:none}
+
+/* ---------- BGM 播放器（4.1 — 第一階段串接 YouTube） ---------- */
+.bgm{
+  position:fixed;right:20px;bottom:20px;z-index:70;display:flex;align-items:center;gap:11px;
+  background:var(--bgm-bg);backdrop-filter:blur(10px);color:var(--bgm-fg);
+  border:1px solid var(--line-dark);border-radius:40px;padding:9px 17px 9px 10px;
+  box-shadow:var(--sh-md);
+}
+.bgm .disc{width:34px;height:34px;border-radius:50%;background:conic-gradient(#565d68,#2b3038,#565d68,#2b3038,#565d68);display:grid;place-items:center;animation:spin 7s linear infinite}
+.bgm .disc::after{content:"";width:9px;height:9px;border-radius:50%;background:#14161a;border:2px solid #757c87}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bgm .title{font-size:calc(11px*var(--fs,1));max-width:150px;color:var(--bgm-fg);opacity:.7;min-width:0}
+.bgm .title .tt{color:var(--bgm-fg);font-size:calc(11.5px*var(--fs,1));font-weight:600;opacity:1}
+/* 流動文字 — 僅在播放中＋文字超出時（Marquee） */
+.bgm .title .mq{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:150px}
+.bgm .title .mq.run{text-overflow:clip}
+.bgm .mq-in{display:inline-flex;gap:28px;animation:mqScroll 9s linear infinite}
+@keyframes mqScroll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 14px))}}
+.bgm .ctrl{display:flex;gap:2px}
+.bgm .ctrl button{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:calc(10px*var(--fs,1));color:var(--bgm-ic);transition:.15s}
+.bgm .ctrl button:hover{background:rgba(255,255,255,.12);color:var(--bgm-fg)}
+/* 列表圖示 — 線條（stroke）圖示，圖示顏色（--bgm-ic）與主題連動 */
+.bgm .ctrl .lst svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}
+/* 摺疊（4.1）：只保留唱片的迷你狀態 · 摺疊箭頭按鈕 */
+.bgm .fold-btn{width:18px;height:26px;display:grid;place-items:center;color:var(--bgm-ic);font-size:calc(11px*var(--fs,1));border-radius:6px;transition:.15s}
+.bgm .fold-btn:hover{color:var(--bgm-fg)}
+.bgm.folded{padding:6px;gap:0;cursor:var(--cur-pointer,pointer)}
+.bgm.folded .title,.bgm.folded .ctrl,.bgm.folded .vol,.bgm.folded .fold-btn,.bgm.folded .bgm-list{display:none}
+.bgm-list{position:absolute;bottom:calc(100% + 10px);right:0;min-width:200px;background:var(--bgm-bg);border:1px solid var(--line-dark);border-radius:14px;padding:8px;display:none;box-shadow:var(--sh-dd)}
+/* 當配置在左側時，列表彈窗也以左側為基準 — 避免被推到畫面外 */
+.bgm.bgm-left .bgm-list{right:auto;left:0}
+.bgm-list.on{display:block;animation:fade .18s}
+.bgm-list .h{font-size:calc(9px*var(--fs,1));letter-spacing:.22em;color:var(--bgm-ic);padding:4px 9px 7px}
+.bgm-list .it{padding:7px 9px;border-radius:9px;cursor:var(--cur-pointer,pointer);transition:.13s}
+.bgm-list .it b{display:block;font-size:calc(11.5px*var(--fs,1));color:var(--bgm-fg)}
+.bgm-list .it small{font-size:calc(9.5px*var(--fs,1));color:var(--bgm-ic)}
+.bgm-list .it:hover{background:rgba(255,255,255,.08)}
+.bgm-list .it.on{background:rgba(255,255,255,.06)}
+.bgm-list .it.on b{color:var(--accent-soft,var(--accent))}
+.vol{width:64px;height:3px;border-radius:3px;background:#454b55;position:relative;cursor:var(--cur-pointer,pointer)}
+.vol i{position:absolute;left:0;top:0;height:100%;width:62%;background:var(--bgm-vol);border-radius:3px}
+.vol i::after{content:"";position:absolute;right:-4px;top:-3.5px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+
+/* ---------- 共用版面配置 ---------- */
+/* 底部留白是為了不遮住 BGM 迷你播放器（約 73px）的最小值 — 太多會產生不必要的捲動 */
+.page{max-width:1180px;margin:0 auto;padding:16px 28px 80px;animation:fade .35s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+/* min-height：右側操作元件是絕對定位，因此不會計入標頭高度 — 當標頭變短（隱藏說明・隱藏標題
+   · 詳細頁面等將標題高度設為 0 時），操作元件會往上突出並被上方選單裁切（v2.0 使用者發現）。
+   一律預留足以放置單列操作元件的空間（有顯示標題的頁面本來就更高，因此不會改變） */
+.page-head{position:relative;color:#eceef1;margin-bottom:16px;min-height:calc(38px*var(--fs,1));display:grid;grid-template-columns:1fr auto;align-items:end;column-gap:20px}
+/* 選單標題 — 獨立角色（預設沿用標題字體・大小，大小使用兩個倍率相乘）
+   點擊後前往該選單的初始頁面 — 禁止文字游標／拖曳選取 */
+.page-head h1{--fs:calc(var(--fs-pagetitle,1)*var(--fs-title,1));font-family:var(--font-pagetitle,var(--serif));font-size:calc(30px*var(--fs,1));font-weight:var(--fw-pagetitle,var(--fw-title,600));letter-spacing:.14em;grid-column:1;color:var(--page-title);cursor:var(--cur-pointer,pointer);user-select:none;transition:opacity .15s;display:var(--ph-title,block)} /* 標頭顯示選項（v1.9） */
+.page-head h1:hover{opacity:.75}
+.page-head p{--fs:var(--fs-subtitle,1);font-family:var(--font-subtitle,var(--sans));font-weight:var(--fw-subtitle,400);font-size:calc(12.5px*var(--fs,1));color:var(--page-desc);margin-top:4px;letter-spacing:.02em;grid-column:1;display:var(--ph-desc,block)} /* 標頭顯示選項（v1.9） */
+/* 標頭顯示選項只會隱藏可編輯說明（EditableDesc）— 狀態・提示文字（需要登入、沒有權限、文章資訊等）一律顯示
+   （修正隱藏狀態下連角色扮演未登入提示也消失、導致看起來像空白頁面的錯誤，v1.9） */
+.page-head p:not(.editable){display:block}
+.page-head p.gate{display:block} /* 可編輯但一律顯示的狀態文字（EditableDesc always） */
+/* 說明文字 inline 編輯 — 與檢視（p）相同大小／間距的無縫輸入框（切換時不會晃動） */
+.page-head .desc-edit{
+  grid-column:1;background:none;border:none;outline:none;
+  border-bottom:1px dashed var(--accent);
+  color:var(--page-desc);font-size:calc(12.5px*var(--fs,1));letter-spacing:.02em;
+  font-family:var(--font-subtitle,var(--sans));font-weight:var(--fw-subtitle,400);
+  padding:0;margin-top:4px;margin-bottom:-1px;width:min(480px,100%); /* 底線 1px 修正 — 高度完全相同 */
+}
+/* 管理員：說明編輯提示 — 左右反轉的鉛筆＋間距（v1.8） */
+/* 鉛筆圖示只會顯示在實際可編輯的文字（.editable）上 — 不會顯示在動態 Meta 文字 */
+.admin .page-head p.editable{cursor:text}
+.admin .page-head p.editable:hover::after{content:"✎";font-size:calc(11px*var(--fs,1));color:#c9cdd4;display:inline-block;margin-left:8px;transform:scaleX(-1)}
+/* 右側操作元件（搜尋・登錄・槽位）使用絕對定位 — 即使高度增加也不會拉開標題・說明行距
+   （像委託一樣操作元件分成兩列時，說明文字上方留白比其他選單更寬的問題，v1.9 使用者發現） */
+.head-actions{position:absolute;right:0;bottom:0;display:flex;gap:8px;align-items:center}
+/* 兩列操作元件（委託的槽位＋搜尋・登錄）高度比標頭高。貼在下方時，隱藏說明後
+   標頭變短會導致它向上突出 — 槽位甚至會跑到上方選單（v2.0 使用者發現）。
+   將它貼在上方，讓它向下延伸：無論有沒有說明，槽位位置都保持不變 */
+.head-actions.stack{top:0;bottom:auto;flex-direction:column;align-items:flex-end;gap:10px}
+/* 兩列操作元件高度比標頭高，因此如果標頭沒有預留空間，就會與下方列表重疊
+   （v2.0 使用者發現） */
+/* 操作元件已貼在上方，因此標題也對齊上方 — 如果使用下方對齊，隱藏說明後
+   標題會向下移動，與槽位錯位 */
+.page-head.head-stack{min-height:calc(80px*var(--fs,1));align-items:start}
+
+/* ---------- 留言板共用搜尋（6.4）— 摺疊型，垂直高度統一 35px ---------- */
+/* 搜尋框 — 主題 Token（在環境設定 > 設計「搜尋框」中指定顏色，自動連動淺色／深色） */
+.searchbar{display:flex;align-items:center;gap:0;
+  background:var(--search-bg,#232830);border:1.5px solid var(--search-bd,#3a404a);border-radius:10px;padding:2px;transition:padding .25s;
+  height:35px;box-sizing:border-box;justify-content:center}
+.searchbar input{background:none;border:none;outline:none;color:var(--search-fg,#e8eaee);font-size:calc(12px*var(--fs,1));width:0;opacity:0;padding:7px 0;transition:width .25s ease,opacity .2s}
+.searchbar.open{padding:2px 2px 2px 12px}
+.searchbar.open input{width:150px;opacity:1}
+.searchbar input::placeholder{color:var(--search-ic,#7a808a)}
+.searchbar button{width:27px;height:27px;border-radius:8px;color:var(--search-ic,#aab0ba);font-size:calc(20px*var(--fs,1));line-height:1;display:grid;place-items:center;transition:.15s}
+.searchbar button:hover{background:rgba(127,127,127,.15);color:var(--search-fg,#fff)}
+.searchbar.light{background:#fff;border:1.5px solid var(--line)}
+.searchbar.light input{color:var(--ink)}
+.searchbar.light input::placeholder{color:var(--faint)}
+.searchbar.light button{color:var(--sub)}
+.searchbar.light button:hover{background:#eef0f2;color:var(--ink)}
+
+.panel{background:var(--panel);border-radius:var(--radius);box-shadow:var(--sh-md);padding:22px;overflow:hidden}
+.hint{font-size:calc(11px*var(--fs,1));color:var(--faint);margin-top:8px}
+
+/* ---------- 自訂 UI Kit（第 7 章 — 全面取代預設 UI） ---------- */
+.k-input,.k-textarea{
+  width:100%;background:#fff;border:1.5px solid var(--line);border-radius:var(--radius-s);
+  padding:10px 13px;font-size:calc(13px*var(--fs,1));color:var(--ink);outline:none;transition:.18s;
+}
+/* Focus — 在設計分頁「輸入焦點」中指定顏色・Ring 方式・厚度（v1.9 使用者要求） */
+.k-input:focus,.k-textarea:focus{border-color:var(--focus-bd,var(--steel-3));box-shadow:var(--focus-ring,0 0 0 3px rgba(60,67,77,.12))}
+.k-textarea{resize:none;min-height:86px;line-height:1.7;overflow:hidden}
+/* 明亮區域捲軸：細且淡（v1.8） */
+.k-textarea,.panel,.mng-box{scrollbar-color:var(--sb-thumb,#c9ccd2) transparent;scrollbar-width:thin}
+.k-textarea::-webkit-scrollbar,.panel ::-webkit-scrollbar,.mng-box ::-webkit-scrollbar{width:8px}
+.k-textarea::-webkit-scrollbar-track,.panel ::-webkit-scrollbar-track,.mng-box ::-webkit-scrollbar-track{background:transparent}
+.k-textarea::-webkit-scrollbar-thumb,.panel ::-webkit-scrollbar-thumb,.mng-box ::-webkit-scrollbar-thumb{background:var(--sb-thumb,#c9ccd2);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+.k-label{display:block;font-size:calc(11.5px*var(--fs,1));font-weight:700;color:var(--sub);margin:0 0 6px;letter-spacing:.05em}
+/* 核取方塊 15px — 核取標記正中央（v1.6） */
+/* 視覺對齊修正（v1.9）— line-height=方框高度（解決字形向上偏移）＋尺寸・邊框使用整數 px
+   （15px 方框・1.5px 邊框在 100% 倍率下的半像素會產生上下不對稱的吸附問題） */
+.k-check{display:inline-flex;align-items:center;gap:8px;font-size:calc(13px*var(--fs,1));line-height:16px;cursor:var(--cur-pointer,pointer);user-select:none}
+.k-check .box{width:16px;height:16px;border-radius:4px;border:1px solid #a9adb6;background:#fff;position:relative;transition:.18s;flex:0 0 16px;box-sizing:border-box}
+.k-check input{display:none}
+.k-check input:checked + .box{background:var(--btn-dark,var(--ink));border-color:var(--btn-dark,var(--ink))}
+.k-check input:checked + .box::after{
+  /* 核取線條是右側・下方邊框，因此視覺中心會偏向右下 — 向上修正以置於正中央（整數 px，v1.9） */
+  content:"";position:absolute;left:50%;top:50%;width:4px;height:8px;
+  border:solid var(--btn-dark-fg,#fff);border-width:0 2px 2px 0;
+  transform:translate(-50%,-62%) rotate(45deg);
+}
+/* 收音機 14px */
+.k-radio{display:inline-flex;align-items:center;gap:8px;font-size:calc(13px*var(--fs,1));line-height:14px;cursor:var(--cur-pointer,pointer);user-select:none}
+.k-radio input{display:none}
+.k-radio .dot{width:14px;height:14px;border-radius:50%;border:1px solid #a9adb6;background:#fff;display:grid;place-items:center;transition:.18s;flex:0 0 14px;box-sizing:border-box}
+/* 收音機選擇 = 連動深色按鈕顏色（v1.9 使用者確認） */
+.k-radio .dot::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--btn-dark,var(--ink));transform:scale(0);transition:.16s}
+.k-radio input:checked + .dot{border-color:var(--btn-dark,var(--ink))}
+.k-radio input:checked + .dot::after{transform:scale(1)}
+.k-radio.dis{opacity:.45;pointer-events:none} /* 無法選擇 — 已經新增的 Widget 等（v1.9） */
+/* 收音機旁的補充說明 — 手機版隱藏以維持單行（v1.9 使用者確認：圖庫類型等） */
+.rd-desc{color:var(--faint);font-size:calc(11px*var(--fs,1))}
+@media (max-width:620px){.rd-desc{display:none}}
+/* 切換開關 */
+.k-toggle{display:inline-flex;align-items:center;gap:9px;font-size:calc(13px*var(--fs,1));cursor:var(--cur-pointer,pointer);user-select:none}
+.k-toggle input{display:none}
+.k-toggle .tr{width:38px;height:21px;border-radius:21px;background:#c9ccd2;position:relative;transition:.2s}
+.k-toggle .tr::after{content:"";position:absolute;left:2.5px;top:2.5px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:.2s}
+.k-toggle input:checked + .tr{background:var(--ink)}
+.k-toggle input:checked + .tr::after{left:19.5px}
+/* 數字步進器（取代 Spinner） */
+.k-step{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:var(--radius-s);overflow:hidden;background:#fff}
+.k-step button{width:32px;height:34px;font-size:calc(15px*var(--fs,1));color:var(--sub);transition:.15s}
+.k-step button:hover{background:#f0f1f3;color:var(--ink)}
+.k-step span,.k-step input{min-width:44px;text-align:center;font-size:calc(13px*var(--fs,1));font-weight:600;border-left:1px solid var(--line);border-right:1px solid var(--line);padding:0 6px;line-height:34px;color:var(--ink)}
+.k-step input{width:52px;height:34px;border-top:0;border-bottom:0;border-radius:0;background:transparent;font-family:inherit} /* 支援直接輸入（v1.9） */
+.k-step input:focus{outline:none;background:#f0f1f3}
+/* 下拉選單 — 箭頭垂直置中（v1.9） */
+.k-select{position:relative;min-width:150px;user-select:none}
+.k-select .cur{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:#fff;border:1.5px solid var(--line);border-radius:var(--radius-s);
+  padding:9px 34px 9px 13px;font-size:calc(13px*var(--fs,1));line-height:18px;cursor:var(--cur-pointer,pointer);position:relative;transition:.18s;
+  color:var(--ink);
+}
+.k-select .cur *{line-height:inherit;vertical-align:top} /* 即使選到字體預覽（字體度量較大），垂直尺寸也不會變大 — 連基線對齊殘差也一併阻止（v1.9） */
+.k-select .cur::after{content:"";position:absolute;right:13px;top:50%;width:7px;height:7px;border:solid var(--sub);border-width:0 1.5px 1.5px 0;transform:translateY(-70%) rotate(45deg);transition:.2s}
+.k-select.open .cur{border-color:var(--focus-bd,var(--steel-3));box-shadow:var(--focus-ring,none)}
+.k-select.open .cur::after{transform:translateY(-30%) rotate(-135deg)}
+.k-select .opts{
+  position:absolute;left:0;right:0;top:calc(100% + 6px);background:#fff;border-radius:var(--radius-s);
+  box-shadow:var(--sh-dd);padding:5px;display:none;z-index:40;max-height:260px;overflow-y:auto;
+}
+.k-select.open .opts{display:block;animation:fade .18s}
+/* 固定 line-height — 即使使用字體度量較大的字體（預覽套用），列高也不會變大（v1.9） */
+.k-select .opts div{padding:8px 11px;font-size:calc(12.5px*var(--fs,1));line-height:18px;border-radius:6px;cursor:var(--cur-pointer,pointer);color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-select .opts div:hover{background:#f2f3f5}
+.k-select .opts div.sel{background:var(--ink);color:#fff}
+/* Portal 選項面板 — 在任何 overflow:hidden 容器中都不會被裁切 */
+.k-sel-pop{position:fixed;z-index:140;background:#fff;border-radius:var(--radius-s);
+  box-shadow:var(--sh-dd);padding:5px;max-height:260px;overflow-y:auto;animation:fade .15s}
+.k-sel-pop div{height:34px;display:flex;align-items:center;box-sizing:border-box;padding:0 11px;font-size:calc(12.5px*var(--fs,1));line-height:18px;border-radius:6px;cursor:var(--cur-pointer,pointer);color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-sel-pop div *{line-height:inherit} /* 預覽 span 也固定繼承列高（v1.9） */
+.k-sel-pop div:hover{background:#f2f3f5}
+.k-sel-pop div.sel{background:var(--ink);color:#fff}
+/* 自訂日曆（KDate — 第 7 章） */
+.k-cal{position:fixed;z-index:140;width:248px;background:#fff;border-radius:var(--radius-s);border:1px solid var(--line);box-shadow:var(--sh-dd);padding:12px;animation:fade .15s}
+.k-cal .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.k-cal .hd b{font-size:calc(12.5px*var(--fs,1));color:var(--ink);letter-spacing:.04em}
+.k-cal .hd button{width:26px;height:26px;border-radius:7px;color:var(--sub);font-size:14px;transition:.13s}
+.k-cal .hd button:hover{background:#f2f3f5;color:var(--ink)}
+.k-cal .wk{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:3px}
+.k-cal .wk span{text-align:center;font-size:calc(9.5px*var(--fs,1));color:var(--faint);letter-spacing:.05em;padding:3px 0}
+.k-cal .days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.k-cal .days span{aspect-ratio:1}
+.k-cal .days button{aspect-ratio:1;border-radius:7px;font-size:calc(11.5px*var(--fs,1));color:var(--sub);transition:.12s;display:grid;place-items:center}
+.k-cal .days button:hover{background:#f2f3f5;color:var(--ink)}
+.k-cal .days button.today{box-shadow:inset 0 0 0 1.5px var(--line);font-weight:600}
+.k-cal .days button.sel{background:var(--ink);color:#fff;font-weight:600}
+/* 按鈕 — 登錄／撰寫（btn-dark）固定高度 35px（v1.9） */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-s);font-size:calc(12.5px*var(--fs,1));font-weight:600;letter-spacing:.03em;transition:.18s;line-height:1} /* 修正因 line-height 繼承導致文字向下偏移 */
+.btn-dark{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff);height:35px;padding-top:0;padding-bottom:0;box-sizing:border-box}
+.btn-dark:hover{background:var(--btn-dark-hv,#33373e)}
+.btn-ghost{border:1.5px solid var(--line);color:var(--sub);background:#fff}
+.btn-ghost:hover{border-color:var(--steel-3);color:var(--ink)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent-soft)}
+/* 深色頁面背景上的低強調按鈕（CANCEL 等 — 比主要按鈕弱） */
+/* 背景上的輔助按鈕 — 中性灰色基底＋主題文字顏色，因此淺色／深色都能顯示 */
+.btn-onbk{background:rgba(127,127,127,.13);border:1px solid rgba(127,127,127,.28);color:var(--page-desc)}
+.btn-onbk:hover{background:rgba(127,127,127,.22);color:var(--page-title)}
+.btn:disabled{opacity:.45;pointer-events:none}
+/* 標籤／徽章 */
+.pill{display:inline-block;padding:4px 11px;border-radius:20px;font-size:calc(10.5px*var(--fs,1));letter-spacing:.04em;background:#eef0f2;color:var(--sub);border:1px solid var(--line);white-space:nowrap}
+.pill.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pill.red{background:color-mix(in srgb,var(--accent) 9%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 25%,transparent)}
+/* 顏色 Swatch */
+.swatches{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.sw{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line),0 2px 6px rgba(0,0,0,.15);cursor:var(--cur-pointer,pointer);transition:.15s}
+.sw:hover{transform:scale(1.15)}
+.sw.sel{box-shadow:0 0 0 2px var(--ink)}
+/* 靜態顏色圓點 — 懸停時只顯示 hex 工具提示（4.4） */
+.sw-static{width:18px;height:18px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);position:relative}
+.sw-static[data-hex]:hover::after{
+  content:attr(data-hex);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:rgba(28,31,37,.96);color:#dfe2e7;font-size:calc(10px*var(--fs,1));letter-spacing:.05em;padding:4px 8px;border-radius:6px;
+  white-space:nowrap;z-index:20;box-shadow:0 6px 18px rgba(0,0,0,.3);
+}
+/* 摺疊（劇透 — 6.2） */
+.veil{position:relative;overflow:hidden;border-radius:var(--radius-s)}
+.veil .cover{
+  position:absolute;inset:0;display:grid;place-items:center;gap:2px;cursor:var(--cur-pointer,pointer);z-index:5;
+  background:rgba(28,31,36,.55);backdrop-filter:blur(14px);color:#fff;text-align:center;
+}
+.veil .cover b{font-size:calc(12px*var(--fs,1));letter-spacing:.1em}
+.veil .cover span{font-size:calc(10px*var(--fs,1));color:#c8ccd3}
+.veil.open .cover{display:none}
+/* 佔位藝術圖（正式服務中會使用上傳圖片） */
+.ph{background:linear-gradient(135deg,#565d68 0%,#2f343c 60%,#20242a 100%);display:grid;place-items:center;color:rgba(255,255,255,.5);font-family:var(--serif);letter-spacing:.15em;position:relative;overflow:hidden}
+.ph::after{content:"";position:absolute;inset:0;background:radial-gradient(240px 240px at 70% 20%,rgba(255,255,255,.14),transparent 60%)}
+.ph.warm{background:linear-gradient(135deg,#8a7f70 0%,#4b453d 70%)}
+
+/* 自訂工具提示（v1.9 — data-tip 屬性，TipLayer 以 body 層級固定彈窗顯示） */
+.tipd{position:relative}
+/* 陰影連動環境設定 > 設計的下拉選單陰影 Token（--sh-dd）— 禁止硬編碼 */
+.tip-pop{position:fixed;z-index:4000;pointer-events:none;opacity:0;transform:translateY(3px);
+  background:var(--panel-solid,#fcfcfd);color:var(--ink,#1d2025);
+  font-size:calc(11px*var(--fs,1));font-weight:500;letter-spacing:.02em;line-height:1.55;
+  padding:7px 12px;border-radius:9px;max-width:300px;white-space:pre-line;
+  box-shadow:var(--sh-dd);transition:opacity .15s,transform .15s}
+.tip-pop.on{opacity:1;transform:none}
+/* 跟隨下拉選單顏色的工具提示變體（申請者列表鎖定等，v1.9） */
+.tip-pop.dd{background:var(--dd-bg);color:var(--dd-fg)}
+
+/* ================= TRPG 角色（v1.9 新增 — 1:1 印章＋表情切換） ================= */
+.tc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:1080px){.tc-grid{grid-template-columns:repeat(3,1fr)}}
+.tc-card{padding:0;overflow:hidden;transition:.15s}
+.tc-card:hover{transform:translateY(-3px)}
+.tc-card .main{aspect-ratio:1/1;position:relative;overflow:hidden;cursor:zoom-in}
+/* 表情縮圖條 — 使用等寬網格，使其剛好符合容器寬度（右側不會留下零碎空白） */
+.tc-faces{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:7px}
+.tc-faces .fc{width:auto;aspect-ratio:1/1;border-radius:10px;overflow:hidden;position:relative;cursor:var(--cur-pointer,pointer);border:2px solid transparent;opacity:.68;transition:.14s}
+.tc-faces .fc:hover{opacity:1}
+/* 選取的表情 — 使用設計分頁「輸入焦點」中設定的顏色與外框方式（v2.0 使用者發現：
+   只有這裡硬編碼成重點色邊框，看起來與設定的焦點樣式不同） */
+.tc-faces .fc.on{opacity:1;border-color:var(--focus-bd,var(--accent));box-shadow:var(--focus-ring,none)}
+/* 詳細頁 — 左側大型印章（固定 1:1 裁切，原圖點擊放大）＋右側資訊 */
+.tcd-layout{display:grid;grid-template-columns:420px 1fr;gap:16px;align-items:start;max-width:1000px;margin:0 auto}
+.tcd-img{position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:1/1}
+.tcd-img .ph{position:absolute;inset:0}
+@media(max-width:960px){.tcd-layout{grid-template-columns:1fr}}
+.tc-card .bd{padding:9px 13px 13px}
+/* 名稱太長時顯示省略號 — 徽章保留（v1.9） */
+.tc-card .bd .nm{font-size:calc(14.5px*var(--fs,1));font-weight:700;display:flex;align-items:center;gap:7px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc-card .bd .nm .pill{flex-shrink:0}
+.tc-card .bd .meta{display:block;font-size:calc(11px*var(--fs,1));color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 說明 — 最多兩行，超出時顯示省略號（完整內容在詳細頁） */
+.tc-card .bd .desc{font-size:calc(11.5px*var(--fs,1));color:var(--sub);line-height:1.65;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tc-card .th-actions{position:absolute;top:8px;right:8px;z-index:3;display:flex;gap:4px}
+.tc-card .th-actions button{font-size:10px;letter-spacing:.06em;padding:4px 9px;border-radius:7px;background:rgba(15,17,20,.55);color:#fff;transition:.13s}
+.tc-card .th-actions button:hover{background:rgba(15,17,20,.8)}
+.tc-card .th-actions button.del:hover{background:var(--accent)}
+.tc-card:hover .hv-actions{opacity:1;pointer-events:auto}
+
+/* ================= 角色扮演（4.9 — 沿用原型 rp-*） ================= */
+.rp-layout{display:grid;grid-template-columns:280px 1fr 170px;gap:16px;height:600px} /* 右側狀態篩選欄（v1.9） */
+.rp-layout > .tagside{align-self:start} /* PC：不要隨著網格列高度一起拉伸，向上對齊 */
+.rp-rooms{padding:12px;display:flex;flex-direction:column;overflow:hidden} /* 標題固定 — 只有列表內部捲動 */
+.rp-rooms-list{flex:1;overflow:auto;min-height:0}
+.rp-room{padding:12px 13px;border-radius:10px;cursor:var(--cur-pointer,pointer);transition:.14s;margin-bottom:4px}
+.rp-room:hover{background:#eef0f2}
+.rp-room.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff)}
+.rp-room b{font-size:calc(13px*var(--fs,1));display:flex;justify-content:space-between;align-items:center;gap:6px}
+.rp-room small{font-size:calc(10.5px*var(--fs,1));color:var(--faint);display:block;margin-top:3px}
+.rp-room.on small{color:var(--btn-dark-fg,#aab0ba);opacity:.65}
+.rp-room .new{background:var(--accent);color:#fff;font-size:calc(9px*var(--fs,1));padding:1px 6px;border-radius:8px}
+.rp-chat{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.rp-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.rp-head b{font-size:calc(14px*var(--fs,1))}
+.rp-head small{color:var(--faint);font-size:calc(10.5px*var(--fs,1));display:block}
+.rp-msgs{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+/* 角色扮演捲軸 — 比預設（8px）更細 */
+.rp-msgs::-webkit-scrollbar,.rp-rooms-list::-webkit-scrollbar{width:5px}
+.rp-msgs::-webkit-scrollbar-thumb,.rp-rooms-list::-webkit-scrollbar-thumb{border-width:1px}
+/* 水平縮小 20px（v2.0 使用者要求）— 寬度比例保持不變，只縮小實際寬度 */
+.msg{display:flex;gap:10px;max-width:calc(78% - 20px);--cc:93,99,109;position:relative} /* 對話泡泡 = 角色主題色低透明度（第 6 章） */
+.msg .face{width:38px;height:38px;border-radius:11px;flex-shrink:0;position:relative;overflow:hidden}
+.msg .who{font-size:calc(10.5px*var(--fs,1));color:rgb(var(--cc));font-weight:700;margin-bottom:3px;letter-spacing:.05em}
+.msg .bub{padding:10px 14px;border-radius:13px;border-top-left-radius:4px;font-size:calc(12.5px*var(--fs,1));line-height:1.7;
+  background:rgba(var(--cc),.10);border:1px solid rgba(var(--cc),.22);color:var(--ink);white-space:pre-line}
+.msg.me{margin-left:auto;flex-direction:row-reverse;text-align:right}
+.msg.me .bub{border-radius:13px;border-top-right-radius:4px}
+/* 敘述（Description）— 不顯示角色，置中呈現敘述（v1.8） */
+.msg-desc{align-self:center;text-align:center;max-width:82%;font-size:calc(12.5px*var(--fs,1));line-height:1.8;color:#4a505a;padding:2px 0;white-space:pre-line;position:relative}
+.rp-input{border-top:1px solid var(--line);padding:12px;display:flex;gap:9px;align-items:flex-end}
+.rp-input .btn{white-space:nowrap}
+.char-pick{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:var(--cur-pointer,pointer);flex-shrink:0;position:relative}
+.char-pick .f{width:40px;height:40px;border-radius:11px;border:2px solid var(--ink);position:relative;overflow:hidden}
+.char-pick small{font-size:calc(9px*var(--fs,1));color:var(--sub);white-space:nowrap}
+/* 發言者選擇彈窗 */
+.rp-pick-pop{position:absolute;bottom:calc(100% + 8px);left:0;z-index:80;background:var(--panel-solid);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--sh-dd);min-width:150px}
+.rp-pick-pop button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:7px 9px;border-radius:8px;font-size:calc(12px*var(--fs,1));transition:.12s;color:var(--ink)}
+.rp-pick-pop button:hover{background:#eef0f2}
+.rp-pick-pop .f{width:24px;height:24px;border-radius:7px;flex-shrink:0;position:relative;overflow:hidden}
+/* 訊息操作（自己的修改／刪除 — 懸停時顯示） */
+.msg .m-act{position:absolute;top:-8px;right:0;display:flex;gap:2px;background:var(--panel-solid);border:1px solid var(--line);border-radius:7px;padding:1px 2px;opacity:0;transition:.13s}
+.msg.me .m-act{right:auto;left:0}
+.msg:hover .m-act,.msg-desc:hover .m-act{opacity:1}
+.msg-desc .m-act{position:absolute;top:-10px;right:0;display:flex;gap:2px;background:var(--panel-solid);border:1px solid var(--line);border-radius:7px;padding:1px 2px;opacity:0;transition:.13s}
+.m-act button{font-size:9.5px;letter-spacing:.05em;color:var(--sub);padding:2px 7px;border-radius:5px}
+.m-act button:hover{color:var(--ink);background:#eef0f2}
+@media(max-width:1080px){.rp-layout{grid-template-columns:220px 1fr 150px}}
+/* 角色扮演手機版（v1.9 使用者確認）— 房間列表改為上方摺疊列，輸入框取得焦點時只保留角色扮演區域 */
+.rp-mfold{display:none}
+@media (max-width:620px){
+  .rp-layout{display:flex;flex-direction:column;height:auto;gap:10px}
+  .rp-mfold{display:flex;align-items:center;justify-content:space-between;gap:10px;order:0;
+    background:var(--panel);border-radius:var(--radius);box-shadow:var(--sh-sm);padding:12px 16px;text-align:left;transition:.15s}
+  .rp-mfold b{font-size:calc(13px*var(--fs,1));min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rp-mfold small{font-size:calc(10px*var(--fs,1));color:var(--faint);letter-spacing:.08em;white-space:nowrap;flex-shrink:0}
+  .rp-rooms{display:none;order:1;max-height:320px}
+  /* 垂直排列時使用全寬 — 使用 start 時會縮小成內容寬度（v2.0 使用者回報） */
+  .rp-layout > .tagside{display:none;order:2;align-self:stretch}
+  .rp-layout.mopen .rp-rooms{display:flex}
+  .rp-layout.mopen > .tagside{display:block}
+  /* 讓聊天室延伸到畫面下方（v2.0 使用者要求 — 「減少下方空白，讓聊天室再往下」）
+     100dvh − 上方元素（頂部列・標題・摺疊列）·BGM 列預留空間。固定 64vh 會在下方留下一大塊空白 */
+  .rp-chat{order:3;height:calc(100dvh - 245px);min-height:380px}
+  .page-rp{padding-bottom:14px}
+  /* 輸入框取得焦點 — 隱藏頁面標題・摺疊列，只保留角色扮演區域（v1.9） */
+  .page.rp-focus .page-head{display:none}
+  .page.rp-focus .rp-mfold{display:none}
+  .page.rp-focus .rp-chat{height:80vh}
+}
+
+/* ================= 圖片 Lightbox（點擊放大檢視） ================= */
+.lightbox{position:fixed;inset:0;z-index:5000;background:rgba(10,11,13,.86);display:grid;place-items:center;animation:fade .15s}
+.lightbox img{max-width:92vw;max-height:90vh;border-radius:10px;box-shadow:0 24px 80px rgba(0,0,0,.6);cursor:default}
+.lightbox .x{position:fixed;top:18px;right:22px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:15px;display:grid;place-items:center;transition:.15s}
+.lightbox .x:hover{background:rgba(255,255,255,.24)}
+.lightbox .nv{position:fixed;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.1);color:#fff;font-size:22px;display:grid;place-items:center;transition:.15s}
+.lightbox .nv:hover{background:rgba(255,255,255,.22)}
+.lightbox .nv.l{left:22px}
+.lightbox .nv.r{right:22px}
+.lightbox .cnt{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:11.5px;letter-spacing:.14em;color:rgba(255,255,255,.75)}
+
+/* ================= 便利貼記事本（4.6 — 沿用原型 memo-*） ================= */
+.memo-layout{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+.memoboard{position:relative;height:640px;border-radius:var(--radius);background:var(--memo-board,rgba(255,255,255,.06));border:1px solid var(--memo-board-bd,var(--line-dark));overflow:hidden} /* 顏色在設計分頁中設定（v1.9） */
+.postit{position:absolute;width:158px;padding:14px 14px 18px;font-size:calc(11.5px*var(--fs,1));line-height:1.65;color:#3c3a33;box-shadow:0 8px 20px rgba(0,0,0,.3);cursor:var(--cur-drag,grab);white-space:pre-line;user-select:none}
+.postit b{display:block;font-size:calc(9.5px*var(--fs,1));letter-spacing:.1em;color:rgba(0,0,0,.4);margin-bottom:6px}
+.postit:active{cursor:grabbing}
+.postit.hl{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 50%,transparent),0 8px 20px rgba(0,0,0,.3)}
+.postit.ro{cursor:default}
+.memo-list-item{display:flex;gap:10px;padding:10px 12px;border-radius:9px;cursor:var(--cur-pointer,pointer);transition:.13s;align-items:flex-start}
+.memo-list-item:hover{background:#f0f1f4}
+.memo-list-item .cdot{width:12px;height:12px;border-radius:4px;flex-shrink:0;margin-top:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.memo-list-item b{font-size:calc(11px*var(--fs,1));color:var(--faint);font-weight:600;display:block}
+.memo-list-item p{font-size:calc(12px*var(--fs,1));color:#33373e;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* 顏色選擇 Chip（登錄／修改 Modal） */
+.memo-chips{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.memo-chips .c{width:26px;height:26px;border-radius:8px;cursor:var(--cur-pointer,pointer);box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);transition:.13s}
+.memo-chips .c.on{box-shadow:inset 0 0 0 1px rgba(0,0,0,.1),0 0 0 2.5px var(--accent)}
+/* 首頁迷你看板 Widget */
+.memo-mini{position:relative;flex:1;min-height:150px;border-radius:10px;background:var(--memo-board,rgba(0,0,0,.04));border:1px solid var(--memo-board-bd,transparent);overflow:hidden;cursor:var(--cur-pointer,pointer)}
+.memo-mini .postit{width:84px;padding:7px 8px 9px;font-size:8.5px;line-height:1.5;box-shadow:0 4px 10px rgba(0,0,0,.2);pointer-events:none}
+.memo-mini .postit b{font-size:6.5px;margin-bottom:3px}
+@media(max-width:1080px){.memo-layout{grid-template-columns:1fr 230px}}
+/* 從中等螢幕開始，將記事本列表移到看板下方（v1.9 使用者確認 — 螢幕變窄時看板會被擠壓） */
+@media(max-width:960px){.memo-layout{grid-template-columns:1fr}}
+
+/* ================= 感想串（4.17 — 沿用原型 thr-*） ================= */
+.thr-layout{display:grid;grid-template-columns:1fr 290px;gap:16px;align-items:start}
+.thr-head{display:flex;gap:18px;padding:22px;border-bottom:1px solid var(--line);align-items:center;position:relative}
+.thr-head .poster{width:92px;aspect-ratio:3/4;border-radius:9px;flex-shrink:0;overflow:hidden;position:relative}
+.thr-head .tt{font-family:var(--serif);font-size:calc(26px*var(--fs,1));font-weight:700;line-height:1.3;margin:2px 0 3px}
+.thr-head .author{font-size:calc(12.5px*var(--fs,1));color:var(--sub);margin-bottom:6px}
+.thr-head .author b{font-weight:600;color:var(--faint)}
+.thr-head small{font-size:calc(11px*var(--fs,1));color:var(--faint)}
+.cat-badge{position:absolute;top:16px;right:18px;background:var(--ink);color:#fff;font-size:calc(10px*var(--fs,1));letter-spacing:.22em;padding:6px 13px 6px 15px;border-radius:7px}
+.thr-body{padding:22px 22px 6px}
+.thr-post{position:relative;padding:0 0 24px 30px}
+.thr-post::before{content:"";position:absolute;left:8px;top:4px;bottom:0;width:1.5px;background:var(--line)}
+.thr-post:last-child::before{bottom:auto;height:14px}
+.thr-post::after{content:"";position:absolute;left:3.5px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--panel-solid);border:2.5px solid var(--steel-3)}
+.thr-post p{font-size:calc(13px*var(--fs,1));line-height:1.8;color:#33373e;margin-bottom:8px;white-space:pre-line}
+.thr-post .tm{font-size:calc(10px*var(--fs,1));color:var(--faint)}
+/* 文章操作 — 右下方（避免與文字重疊）＋淡色背景 Chip */
+.thr-post .hv-actions{position:absolute;right:0;bottom:16px;display:flex;gap:2px;background:#eef0f3;border-radius:8px;padding:2px 3px}
+.thr-post:hover .hv-actions{opacity:1;pointer-events:auto}
+.thr-post .hv-actions button{font-size:10px;letter-spacing:.06em;color:var(--sub);padding:3px 8px;border-radius:6px}
+.thr-post .hv-actions button:hover{color:var(--ink);background:#fff}
+.thr-post .hv-actions button.del:hover{color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+/* 感想串文章摺疊緩衝（v2.0 使用者要求 — 劇透第一層緩衝） */
+.thr-fold{border:1.5px dashed var(--line);border-radius:10px;padding:13px 16px;margin-bottom:8px;
+  cursor:var(--cur-pointer,pointer);background:color-mix(in srgb,var(--accent) 4%,transparent);transition:.15s}
+.thr-fold:hover{background:color-mix(in srgb,var(--accent) 9%,transparent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.thr-fold b{display:block;font-size:calc(12.5px*var(--fs,1));color:var(--ink);margin-bottom:2px}
+.thr-fold span{font-size:calc(10.5px*var(--fs,1));color:var(--faint)}
+.thr-refold{font-size:calc(10px*var(--fs,1));color:var(--faint);letter-spacing:.06em;padding:2px 0;display:block;margin-bottom:2px}
+.thr-refold:hover{color:var(--accent)}
+/* 感想串留言（v2.0 使用者要求）— 將與留言板相同的 .cmt 列放在這個區塊中 */
+.thr-cmts{border-top:1px solid var(--line);padding:16px 18px 6px}
+.thr-cmts h4{font-size:calc(11.5px*var(--fs,1));letter-spacing:.12em;color:var(--faint);margin-bottom:13px}
+.thr-cmts h4 span{color:var(--accent)}
+.thr-imgs{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:420px;margin-bottom:8px}
+.thr-imgs .im{aspect-ratio:16/10;border-radius:9px;overflow:hidden;cursor:var(--cur-pointer,pointer);position:relative}
+.thr-imgs.one{grid-template-columns:1fr}
+.thr-imgs.three{grid-template-columns:1fr 1fr 1fr;max-width:100%} /* 3 張一列 — 2×2 中只剩一張會顯得尷尬（只有 4 張時使用 2×2） */
+/* 接續撰寫編輯器 — 無邊框輸入框＋下方工具列（v1.8） */
+.thr-write{border-top:1px solid var(--line);padding:0;display:block}
+.thr-write textarea{width:100%;border:none;outline:none;background:transparent;resize:none;
+  padding:16px 18px 8px;font-size:calc(13px*var(--fs,1));line-height:1.75;min-height:76px;font-family:inherit;color:var(--ink)}
+.thr-write textarea::placeholder{color:var(--faint)}
+.thr-write .wfoot{display:flex;justify-content:space-between;align-items:center;margin:0 18px;padding:9px 0 12px;border-top:1px solid var(--line)}
+.thr-att{display:flex;gap:7px;padding:0 18px 10px;flex-wrap:wrap}
+.thr-att .at{position:relative;width:74px;aspect-ratio:16/10;border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.thr-att .at img{width:100%;height:100%;object-fit:cover;display:block}
+.thr-att .at button{position:absolute;top:2px;right:2px;width:17px;height:17px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:10px;display:grid;place-items:center}
+.icobtn{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--sub);transition:.15s;cursor:var(--cur-pointer,pointer)}
+.icobtn:hover{background:#e9ebee;color:var(--ink)}
+.icobtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+/* 右側作品列表 */
+.thr-item{display:flex;gap:11px;padding:10px 12px;border-radius:10px;cursor:var(--cur-pointer,pointer);transition:.13s;align-items:center}
+.thr-item:hover{background:#f0f1f4}
+.thr-item.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff)}
+.thr-item .th{width:38px;aspect-ratio:3/4;border-radius:6px;flex-shrink:0;overflow:hidden;position:relative}
+.thr-item b{font-size:calc(12.5px*var(--fs,1));display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} /* 長標題省略（v1.9） */
+.thr-item small{font-size:calc(10px*var(--fs,1));color:var(--faint);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thr-item.on small{color:var(--btn-dark-fg,#aab0ba);opacity:.65}
+/* 列表檢視卡片（每列 5 個，3:4 海報） */
+.thr-card{padding:0;overflow:hidden;cursor:var(--cur-pointer,pointer);transition:.15s}
+.thr-card:hover{transform:translateY(-3px)}
+.thr-card .th{aspect-ratio:3/4;position:relative;overflow:hidden}
+.thr-card .th .pill{position:absolute;top:9px;right:9px;z-index:2}
+.thr-card .info{padding:10px 12px 12px}
+.thr-card .info .tt{font-size:calc(14px*var(--fs,1));font-weight:700;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thr-card .info .row{padding:1px 0;font-size:calc(11px*var(--fs,1));color:var(--sub)}
+.thr-card .info .row b{font-weight:600;color:var(--faint);margin-right:5px}
+@media(max-width:1080px){.thr-layout{grid-template-columns:1fr 230px}}
+/* 手機版 — 將右側作品列表移到感想串下方（v1.9 使用者確認） */
+@media(max-width:620px){.thr-layout{grid-template-columns:1fr}}
+
+/* 分頁（v1.6） */
+.pager{display:flex;justify-content:center;gap:5px;margin-top:18px}
+/* 分頁切換按鈕遵循 **與分頁相同的顏色設定**（v2.0 使用者要求）。
+   以前使用預設深色背景的數值（#aab0ba・白色半透明），因此即使在設計分頁中
+   修改顏色，只有這裡不會跟著變。未選取的是 --seg-bg/--seg-fg，
+   已選取的是 --btn-dark/--btn-dark-fg — 就是分頁（.mini-seg）所使用的那些值 */
+.pager button{min-width:30px;height:30px;border-radius:8px;font-size:calc(11.5px*var(--fs,1));color:var(--seg-fg,#8a8f98);background:var(--seg-bg,#f0f1f3);border:1px solid transparent;transition:.15s;padding:0 8px}
+.pager button:hover{color:var(--btn-dark,var(--ink))}
+.pager button.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff);border-color:transparent}
+.pager button:disabled{opacity:.35;pointer-events:none}
+
+/* Modal／Overlay（第 7 章 — 取代 alert／confirm） */
+.modal-ov{position:fixed;inset:0;background:rgba(15,17,20,.62);backdrop-filter:blur(3px);z-index:90;display:grid;place-items:center;animation:fade .16s}
+.mng-box{background:var(--panel-solid);border-radius:var(--radius);padding:24px;width:600px;max-width:94vw;max-height:82vh;overflow:auto;box-shadow:var(--sh-lg)}
+.mng-box h3{font-size:calc(15px*var(--fs,1));margin-bottom:3px;color:var(--ink)}
+.mng-box .d{font-size:calc(11px*var(--fs,1));color:var(--faint);margin-bottom:16px}
+.mng-box.sm{width:420px}
+/* 避免按鈕變窄後文字折成兩行 — 超出時以按鈕為單位換行 */
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;flex-wrap:wrap}
+.modal-actions .btn{white-space:nowrap;flex-shrink:0}
+
+/* Toast */
+.toast-box{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{padding:10px 18px;border-radius:999px;background:var(--dd-bg);color:var(--dd-fg);font-size:calc(12.5px*var(--fs,1));box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--line-dark);backdrop-filter:blur(8px);animation:toastIn .2s ease}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}}
+
+/* 顏色欄位（5.1 — 左側 Hex 輸入＋右側圓形顏色按鈕 → 自訂色彩選擇器） */
+.color-field{display:inline-flex;align-items:center;gap:8px;position:relative}
+.color-field .k-input{width:96px;font-family:ui-monospace,Consolas,monospace;font-size:calc(12px*var(--fs,1));letter-spacing:.02em;padding:8px 10px}
+.color-dot{width:26px;height:26px;border-radius:50%;border:2px solid #fff;flex-shrink:0;box-shadow:0 0 0 1px var(--line),0 2px 6px rgba(0,0,0,.18);cursor:var(--cur-pointer,pointer);transition:transform .12s;background-size:auto,10px 10px}
+.color-dot:hover{transform:scale(1.1)}
+.picker-pop{position:absolute;top:calc(100% + 8px);left:0;z-index:90;padding:12px;width:216px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-s);box-shadow:0 16px 44px rgba(0,0,0,.2)}
+.picker-sv{position:relative;width:100%;height:130px;border-radius:7px;cursor:crosshair;background-image:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent)}
+.picker-cursor{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:none}
+.picker-hue{position:relative;margin-top:10px;height:12px;border-radius:999px;cursor:var(--cur-pointer,pointer);background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+/* 顯示半透明顏色時放在後方的棋盤格（v2.0） */
+:root{--checker:repeating-conic-gradient(#c8ccd2 0% 25%,#fff 0% 50%)}
+.picker-alpha{height:14px;border-radius:7px;margin-top:9px;position:relative;cursor:var(--cur-pointer,pointer);
+  background-image:linear-gradient(90deg,transparent,var(--a-to,#000)),var(--checker);background-size:auto,8px 8px}
+.picker-hue-cursor{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transform:translate(-50%,-50%);pointer-events:none}
+
+/* Rich Editor（TipTap — 自訂樣式工具列，第 7 章） */
+.re-wrap{position:relative;border:1.5px solid var(--line);border-radius:var(--radius-s);background:#fff;overflow:hidden}
+.re-wrap:focus-within{border-color:var(--focus-bd,var(--steel-3));box-shadow:var(--focus-ring,0 0 0 3px rgba(60,67,77,.12))}
+.re-toolbar{display:flex;align-items:center;gap:2px;padding:6px 8px;border-bottom:1px solid var(--line);background:#fafafb;flex-wrap:wrap}
+.re-btn{min-width:28px;height:28px;padding:0 7px;border-radius:6px;font-size:calc(13px*var(--fs,1));color:var(--sub);display:grid;place-items:center;transition:.13s}
+.re-btn:hover{background:#eef0f2;color:var(--ink)}
+.re-btn.on{background:var(--ink);color:#fff}
+.re-sep{width:1px;height:16px;background:var(--line);margin:0 5px}
+.re-content{min-height:260px;padding:14px 16px;outline:none;font-size:calc(14.5px*var(--fs,1));line-height:1.85}
+/* TipTap 會同時加上 .prose — 為避免 .prose（後方定義）覆蓋，使用上層選擇器固定 */
+.re-wrap .re-content{font-size:calc(14.5px*var(--fs,1))}
+.re-content:focus{outline:none}
+.re-content h2{font-size:calc(20px*var(--fs,1));margin:14px 0 6px}
+.re-content h3{font-size:calc(17px*var(--fs,1));margin:12px 0 5px}
+.re-content ul,.re-content ol{padding-left:22px;margin:8px 0}
+.re-content blockquote{border-left:3px solid var(--line);padding:2px 14px;color:var(--sub);margin:10px 0}
+.re-content img{max-width:100%;border-radius:9px}
+.re-content hr{border:none;border-top:1px solid var(--line);margin:14px 0}
+.re-content p{margin:6px 0}
+/* 以內文區域為基準配置 — 即使工具列換行，Placeholder 也不會侵入工具列（v1.9 使用者發現） */
+.re-body{position:relative}
+.re-ph{position:absolute;top:15px;left:17px;font-size:calc(14px*var(--fs,1));color:var(--faint);pointer-events:none}
+/* 手機版 — 隱藏復原・重做（快捷鍵維持不變），工具列維持單行（v1.9 使用者確認） */
+@media (max-width:620px){
+  .re-hide-m{display:none !important}
+  .re-toolbar{gap:0;padding:5px 6px;flex-wrap:nowrap;overflow-x:auto}
+  .re-btn{min-width:24px;height:26px;padding:0 3px;font-size:calc(12px*var(--fs,1));flex-shrink:0}
+  .re-sep{margin:0 2px;flex-shrink:0}
+}
+
+/* 安裝初始畫面（v2.0）— 伺服器（Supabase）連接 · 管理員帳號 · 設定檔／備份復原 */
+/* 第一次啟動（連接・設定載入）等待顯示 — 只有超過 400ms 時才會出現（ServerBoot）。
+   背景會由 body 在第一次繪製前先上色，因此這裡不另外覆蓋 */
+.boot-wait{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none}
+.boot-wait i{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--line-dark,rgba(255,255,255,.16));
+  border-top-color:var(--accent,#8ea2c6);
+  animation:boot-spin .8s linear infinite;
+}
+@keyframes boot-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.boot-wait i{animation-duration:2.4s}}
+
+/* 安裝畫面位於 App Shell（#appMain）外部，直接隸屬於 body，因此由這裡負責捲動
+   （body 為 height:100vh・overflow:hidden — 否則在步驟較長時下方內容會完全看不到）。
+   使用 margin:auto 置中，而不是 place-items — 避免內容過長時上方被裁掉而無法查看 */
+.setup-wrap{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;justify-content:center;padding:40px 20px}
+.setup-box{width:min(460px,100%);padding:34px 32px;margin:auto}
+.setup-box.wide{width:min(620px,100%)}
+/* 步驟列表 — 因為是具有實際順序的流程，因此加上編號 */
+.setup-steps{list-style:none;counter-reset:st;margin:22px 0 0;padding:0;display:grid;gap:22px}
+.setup-steps > li{counter-increment:st;position:relative;padding-left:38px;min-width:0}
+.setup-steps > li::before{
+  content:counter(st);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;
+  display:grid;place-items:center;font-size:calc(11.5px*var(--fs,1));font-weight:700;
+  color:var(--accent);border:1.5px solid var(--line);background:var(--panel-solid,#fff);
+}
+.setup-steps > li > b{display:block;font-size:calc(13.5px*var(--fs,1));margin-bottom:3px}
+.setup-steps > li > small{display:block;font-size:calc(11.5px*var(--fs,1));color:var(--faint);line-height:1.65;margin-bottom:8px}
+.setup-steps .k-label{margin:10px 0 4px}
+.setup-sql{
+  margin:10px 0 0;padding:12px 14px;max-height:240px;overflow:auto;
+  background:var(--code-bg,#f1f2f4);border:1px solid var(--line);border-radius:9px;
+  font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.6;white-space:pre;color:var(--sub);
+}
+/* 安裝畫面 — 將需要從主控台選擇的項目（版本・區域等）特別醒目地顯示 */
+.setup-picks{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.setup-picks > li{
+  padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-s);
+  background:var(--panel-solid,rgba(255,255,255,.03));
+  font-size:calc(12px*var(--fs,1));line-height:1.6;
+  min-width:0;   /* Grid 欄位預設為內容寬度 — 如果不設定，內部的指令區塊會把卡片撐寬 */
+}
+.setup-picks em{
+  display:block;font-style:normal;margin-top:3px;
+  font-size:calc(11px*var(--fs,1));color:var(--faint);line-height:1.6;
+}
+.setup-picks .warn{color:var(--accent);font-weight:600}
+.setup-ok{margin-top:12px;font-size:calc(11.5px*var(--fs,1));color:var(--accent);font-weight:600}
+.setup-back{width:100%;justify-content:center;margin-top:10px;font-size:11px}
+/* 後端選擇卡片（Supabase / Firebase） */
+.setup-pick{
+  display:block;width:100%;text-align:left;margin-top:10px;padding:16px 18px;
+  border:1.5px solid var(--line);border-radius:var(--radius-s);background:var(--panel-solid,#fff);transition:.15s;
+}
+.setup-pick:hover{border-color:var(--accent);transform:translateY(-1px)}
+.setup-pick b{display:block;font-size:calc(14px*var(--fs,1));margin-bottom:3px}
+.setup-pick small{display:block;font-size:calc(11.5px*var(--fs,1));color:var(--faint);line-height:1.65}
+/* 規則複製按鈕列 */
+.setup-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.setup-row .btn{height:33px;padding:0 14px;font-size:11px;display:inline-flex;align-items:center;text-decoration:none}
+/* 設定登錄的兩種方式（上傳檔案／環境變數） */
+.setup-way{margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--panel-solid,#fff)}
+.setup-way > b{display:block;font-size:calc(12.5px*var(--fs,1));margin-bottom:4px}
+.setup-way > p{margin:0;font-size:calc(11.5px*var(--fs,1));color:var(--faint);line-height:1.65}
+.setup-box h1{font-family:var(--serif);font-size:calc(34px*var(--fs,1));letter-spacing:.22em;color:var(--ink);text-align:center}
+.setup-box .d{font-size:calc(11.5px*var(--fs,1));color:var(--faint);text-align:center;margin:6px 0 22px}
+.setup-box .k-label{display:block;margin:12px 0 5px}
+.setup-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.setup-sep{height:1px;background:var(--line);margin:20px 0 14px}
+.setup-err{margin-top:12px;font-size:calc(11.5px*var(--fs,1));color:var(--accent)}
+.setup-go{width:100%;justify-content:center;margin-top:18px;padding:11px}
+@media (max-width:620px){.setup-2{grid-template-columns:1fr}.setup-box{padding:26px 20px}}
+
+/* 檔案拖放區（6.1） */
+.dropzone{border:1.5px dashed #c3c7cd;border-radius:var(--radius-s);padding:30px 20px;text-align:center;color:var(--faint);font-size:calc(13px*var(--fs,1));cursor:var(--cur-pointer,pointer);transition:.15s;background:#fff}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent-soft);background:#fdf7f7;color:var(--sub)}
+.file-row{display:flex;align-items:center;gap:10px;padding:8px 4px;font-size:calc(12.5px*var(--fs,1));color:var(--ink);border-bottom:1px solid var(--line)}
+.file-row .size{color:var(--faint);font-size:calc(11px*var(--fs,1));margin-left:auto}
+/* 縮圖裁切編輯器（6.1） */
+.crop-frame{aspect-ratio:4/3;overflow:hidden;border-radius:10px;position:relative;cursor:var(--cur-grab,grab);background:var(--crop-bg,#2c313a);user-select:none} /* 透明圖片用面板 — 顏色在設計分頁中設定（v1.9） */
+.crop-frame:active{cursor:grabbing}
+.crop-img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.crop-frame .grid-ov{position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:linear-gradient(to right,transparent calc(33% - .5px),rgba(255,255,255,.35) 33%,transparent calc(33% + .5px),transparent calc(66% - .5px),rgba(255,255,255,.35) 66%,transparent calc(66% + .5px)),
+  linear-gradient(to bottom,transparent calc(33% - .5px),rgba(255,255,255,.35) 33%,transparent calc(33% + .5px),transparent calc(66% - .5px),rgba(255,255,255,.35) 66%,transparent calc(66% + .5px));}
+.crop-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px}
+
+/* 列表資料列懸停規則（v1.6 — 圓角裁切） */
+.hover-list{border-radius:var(--radius-s);overflow:hidden}
+.hover-list .row{padding:11px 14px;font-size:calc(13px*var(--fs,1));display:flex;align-items:center;gap:12px;cursor:var(--cur-pointer,pointer);transition:.12s}
+.hover-list .row:hover{background:var(--ink);color:#eef0f3}
+
+/* 表單資料列 */
+.form-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.form-label{width:130px;font-size:calc(12px*var(--fs,1));letter-spacing:.05em;color:var(--sub);font-weight:700;flex-shrink:0}
+
+/* ---------- Grid 輔助工具 ---------- */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+/* 寬度縮小時只減少欄數 — 中等螢幕 4 個 · 手機版 3 個（v1.9 使用者確認：感想串列表・角色） */
+@media(max-width:960px){.g5{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:620px){.g5{grid-template-columns:repeat(3,1fr);gap:10px}}
+.ph.cool{background:linear-gradient(135deg,#4c5a6e 0%,#242b36 70%)}
+.ph.red{background:linear-gradient(135deg,#7c3f46 0%,#33191d 70%)}
+.ph.pale{background:linear-gradient(135deg,#b9b4ac 0%,#6f6a63 70%)}
+.ph span{z-index:2;font-size:calc(12px*var(--fs,1))}
+
+/* ---------- 首頁（4.0 Widget 系統） ---------- */
+/* 首頁間距規格 = 固定 10px（與 Grid 吸附的 10px 單位一致 — 4.0）
+   Canvas 內容寬度也固定為 10px 的倍數（1120）— 欄位原點 0/240/550/860 全部位於 Grid 上 */
+.page-main-wrap{padding-left:30px;padding-right:30px}
+.main-grid{display:grid;grid-template-columns:230px 1fr 260px;gap:10px;align-items:start}
+/* 絕對配置 Canvas（v1.9 使用者確認）— PC 版沒有文件流程：Widget 使用 ax/ay 絕對座標，允許重疊。
+   流程堆疊僅限手機版（下方 620px media 中恢復為 static） */
+.main-grid.abs{display:block;position:relative}
+.main-grid .g2{gap:10px}
+.main-grid .widget{margin-bottom:0} /* 間距只由包裝器（.wgt）控制 — 避免 Margin 重疊 */
+/* 固定 Canvas 模式：即使縮小視窗也維持配置 — 窄視窗使用水平捲動（以左側為基準），切換手機版時解除（v1.9） */
+body.main-fixed .page-main-wrap{min-width:1180px;margin-left:max(0px, calc(50% - 590px));margin-right:0}
+body.main-fixed #appMain,body.edit-on #appMain{overflow-x:auto}
+/* 編輯模式：即使在響應式模式・窄視窗中，也將 Canvas 固定為 1120px 內容寬度 —
+   中央 1fr 欄位始終為 610px（10px 的倍數），讓 10px Grid 精確對齊 */
+body.edit-on .page-main-wrap{width:1180px;min-width:1180px;margin-left:max(0px, calc(50% - 590px));margin-right:0}
+body.edit-on .main-grid{grid-template-columns:230px 1fr 260px}
+.menu-list{padding:14px;display:none} /* PC 版使用上方選單即可 — 僅手機版使用（v1.8） */
+.wgt-hide-pc{display:none}
+@media (max-width:620px){.wgt-hide-pc{display:block}}
+/* 非手機版專用 Widget（v1.9 — 環境設定中的 Toggle 只控制手機版顯示，PC 版維持原樣） */
+@media (max-width:620px){.wgt.wgt-hide-m{display:none !important}}
+.menu-list a{display:block;padding:10px 12px;font-size:calc(13px*var(--fs,1));color:var(--ink);border-radius:8px;cursor:var(--cur-pointer,pointer);transition:.15s}
+.menu-list a:hover{background:#eef0f2}
+.menu-list a small{color:var(--faint);float:right;font-size:calc(10px*var(--fs,1));margin-top:2px}
+.menu-list .mgrp > a::after{content:"▾";float:right;font-size:calc(9px*var(--fs,1));color:var(--faint);margin-top:3px;transition:.2s}
+.menu-list .mgrp.open > a::after{transform:rotate(180deg)}
+.menu-list .msub{display:none;padding-left:12px}
+.menu-list .mgrp.open .msub{display:block}
+.menu-list .msub a{font-size:calc(12px*var(--fs,1));color:var(--sub);padding:7px 12px}
+.banner{position:relative;height:210px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--sh-md)}
+.banner .cap{position:absolute;left:22px;bottom:18px;color:#fff;z-index:3}
+.banner .cap b{--fs:var(--fs-title,1);font-family:var(--serif);font-size:calc(22px*var(--fs,1));font-weight:var(--fw-title,700);letter-spacing:.2em;display:block}
+.banner .cap span{--fs:var(--fs-subtitle,1);font-family:var(--font-subtitle,var(--sans));font-weight:var(--fw-subtitle,400);font-size:calc(11px*var(--fs,1));color:#cfd3da}
+.banner .dots{position:absolute;right:16px;bottom:16px;display:flex;gap:5px;z-index:3}
+.banner .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4);transition:.2s;cursor:var(--cur-pointer,pointer)}
+.banner .dots i.on{background:#fff;width:16px;border-radius:4px}
+.banner .slide{position:absolute;inset:0;opacity:0;transition:opacity .5s}
+.banner .slide.on{opacity:1}
+.login-box{padding:18px}
+.login-box h3{font-size:calc(13px*var(--fs,1));letter-spacing:.08em;margin-bottom:12px;color:var(--sub)}
+/* Widget 樣式（v2.0 使用者要求）— 背景・標題色・內文色・邊框分別在設計分頁中設定。
+   未設定時 --wg-* 會直接使用卡片顏色，因此看起來會與之前完全相同。
+   邊框的 --wg-bd-w 為 0px，因此開啟前不會繪製邊框（只有陰影）。 */
+.widget{padding:16px;margin-bottom:14px;container-type:inline-size;overflow:hidden;
+  background:var(--wg-bg);color:var(--wg-fg);border:var(--wg-bd-w) solid var(--wg-bd)}
+.widget h4{font-size:calc(11.5px*var(--fs,1));letter-spacing:.12em;color:var(--wg-title);margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;gap:8px;white-space:nowrap;overflow:hidden}
+.widget h4 .more{font-size:calc(10px*var(--fs,1));color:var(--wg-title);cursor:var(--cur-pointer,pointer);flex-shrink:0;white-space:nowrap}
+.main-grid .g2{align-items:start}
+.dday-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:calc(12.5px*var(--fs,1))}
+.dday-row:last-child{border:none}
+/* 委託申請者 Widget（v2.0 使用者要求）— 與 D-day 列相同的風格，右側顯示狀態徽章 */
+.apply-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:calc(12.5px*var(--fs,1));line-height:calc(18px*var(--fs,1))}
+.apply-row:last-of-type{border-bottom:none}
+.apply-row b{font-family:var(--serif);font-size:calc(13.5px*var(--fs,1));letter-spacing:.05em;flex-shrink:0;min-width:44px}
+.apply-row span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.apply-row i{font-style:normal;flex-shrink:0;font-size:calc(9.5px*var(--fs,1))}
+.dday-row b{font-family:var(--serif);font-size:calc(15px*var(--fs,1));letter-spacing:.05em}
+.dday-row .d-red{color:var(--accent)}
+.todo-row{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:calc(12.5px*var(--fs,1))}
+.todo-row.done span{text-decoration:line-through;color:var(--faint)}
+.diary-mini{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);cursor:var(--cur-pointer,pointer)}
+.diary-mini:last-child{border:none}
+/* 必須將 line-height 壓到 1，文字本身才會置中，而不是文字方框置中（v2.0 使用者發現） */
+.diary-mini .mood{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-size:calc(14px*var(--fs,1));flex-shrink:0}
+.diary-mini .t{font-size:calc(12px*var(--fs,1));min-width:0;overflow:hidden}
+.diary-mini .t .tt{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.diary-mini .t small{display:block;color:var(--faint);font-size:calc(10px*var(--fs,1));margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mood-1{background:#f2ede4}.mood-2{background:#e8ecf2}.mood-3{background:#f2e6e7}.mood-4{background:#e9e9ec}
+/* Widget 縮小時的處理（v1.9）：縮得很小時只顯示心情圖示 */
+@container (max-width:150px){
+  .diary-mini .t{display:none}
+  .diary-mini{justify-content:center}
+  .widget .hint{display:none}
+}
+/* LATEST 縮小規則（v1.9）：透過版面切換填補下方空間 */
+.latest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@container (max-width:240px){
+  .latest-grid{grid-template-columns:1fr 1fr}
+  .latest-grid>*:first-child{grid-column:1/-1;aspect-ratio:16/10 !important}
+}
+@container (max-width:150px){
+  .latest-grid{grid-template-columns:1fr}
+  .latest-grid>*:first-child{grid-column:auto;aspect-ratio:1 !important}
+}
+/* 編輯模式（4.0）：虛線外框＋拖曳＋右下角尺寸調整控制點 */
+.wgt{position:relative}
+/* Widget 之間的間距統一由包裝器（.wgt）控制 — 即使是 login-box 這種沒有 .widget margin 的 Widget 也維持間距 */
+.main-grid .wgt{margin-bottom:10px}
+.main-grid .wgt:last-child{margin-bottom:0}
+/* 指定尺寸（固定／調整尺寸）的框架：內部區塊填滿整個框架 — 拉動控制點時 Widget 也會一起放大 */
+.wgt.sized > *:first-child{width:100%;height:100%}
+.wgt.sized > .widget{margin-bottom:0}
+/* 編輯模式拖曳游標（v1.9 使用者發現）— 如果沒有另外登錄移動游標，就會出現系統手型（grab），
+   導致「游標看起來壞掉，已登錄的手型被忽略」的問題。
+   已登錄的移動游標 > 已登錄的指標（手型）> 已登錄的預設游標 > 系統 grab，依此順序使用。 */
+body{--cur-drag:var(--cur-grab,var(--cur-pointer,var(--cur-default,grab)))}
+body.edit-on .page-main-wrap .wgt{outline:1.5px dashed rgba(201,106,115,.6);outline-offset:3px;cursor:var(--cur-drag,grab);user-select:none}
+/* 拖曳中避免游標經過 Widget 內部元素（按鈕・連結）時形狀跳動 — 統一整個區域
+   控制點（.rs・.rr）除外 — 使用自己的游標 */
+body.edit-on .page-main-wrap, body.edit-on .page-main-wrap *:not(.rs):not(.rr){cursor:var(--cur-drag,grab)}
+/* 按下瞬間變成系統 grabbing，導致自訂游標看起來壞掉的問題 — 維持使用已登錄的游標（v1.9 使用者發現） */
+body.edit-on .page-main-wrap .wgt:active,
+body.edit-on .page-main-wrap *:not(.rs):not(.rr):active{cursor:var(--cur-active,var(--cur-drag,grabbing))}
+/* 控制點游標 — 已登錄的尺寸調整游標 > 已登錄的移動（拖曳）游標 > 系統游標（v1.9 使用者確認）
+   避免被整體 grab 規則（!important）覆蓋，因此這裡也使用 !important */
+.wgt .rs{display:none;position:absolute;right:5px;bottom:5px;width:15px;height:15px;border-radius:4px;background:var(--accent);cursor:var(--cur-rs-nwse,var(--cur-drag,nwse-resize)) !important;z-index:6;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.wgt .rs::after{content:"";position:absolute;right:3px;bottom:3px;width:6px;height:6px;border-right:2px solid #fff;border-bottom:2px solid #fff}
+body.edit-on .page-main-wrap .wgt .rs{display:block}
+/* 拖曳中固定全域游標（v1.9 使用者回饋）— 快速拖曳時即使游標經過其他元素・頁面外，也不會跳回預設游標
+   （WidgetFrame・記事本會在 body 上切換 class） */
+body.drag-move, body.drag-move *{cursor:var(--cur-drag,grabbing) !important}
+body.drag-rs, body.drag-rs *{cursor:var(--cur-rs-nwse,var(--cur-drag,nwse-resize)) !important}
+/* 傾斜控制點（v1.9 — 圖片・自由文字）：左上角，拖曳旋轉 · 雙擊重設 */
+.wgt .rr{display:none;position:absolute;left:5px;top:5px;width:15px;height:15px;border-radius:50%;background:var(--accent);cursor:var(--cur-drag,grab) !important;z-index:6;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.wgt .rr::after{content:"";position:absolute;inset:3.5px;border:2px solid #fff;border-radius:50%;border-left-color:transparent}
+body.edit-on .page-main-wrap .wgt .rr{display:block}
+/*（v1.9）Widget 刪除移至編輯模式的右鍵選單 — 移除常駐 ✕ 按鈕 */
+.add-wgt{display:none;width:100%;padding:20px;border:2px dashed rgba(255,255,255,.3);border-radius:var(--radius);color:#aab0ba;font-size:calc(12.5px*var(--fs,1));transition:.15s;margin-top:14px}
+.add-wgt:hover{border-color:rgba(255,255,255,.55);color:#fff}
+body.edit-on .add-wgt{display:block}
+/* Grid 線條（10px） */
+.main-grid.gridlines{
+  background-image:
+    repeating-linear-gradient(to right,rgba(255,255,255,.05) 0 1px,transparent 1px 10px),
+    repeating-linear-gradient(to bottom,rgba(255,255,255,.05) 0 1px,transparent 1px 10px);
+  border-radius:8px;
+}
+/* 顯示 Grid 時，讓虛線邊框貼緊 Widget 邊角 — 偏移 3px 時即使對齊 Grid，看起來也會錯位 */
+body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
+/* 右鍵 Context Menu（自訂樣式） */
+.ctx-menu{position:fixed;z-index:95;min-width:110px;display:none;
+  background:rgba(28,31,37,.97);border:1px solid var(--line-dark);border-radius:10px;padding:5px;
+  box-shadow:var(--sh-dd)}
+.ctx-menu.on{display:block;animation:fade .12s}
+.ctx-menu button{display:block;width:100%;text-align:left;padding:8px 12px;font-size:calc(12px*var(--fs,1));color:#c6cad1;border-radius:7px;transition:.12s}
+.ctx-menu button:hover{background:rgba(255,255,255,.1);color:#fff}
+.ctx-menu .sep{height:1px;background:rgba(255,255,255,.12);margin:4px 6px}
+/* 右鍵選單標題 — 顯示是哪個 Widget（重複新增的 Widget 會包含編號，v1.9） */
+.ctx-menu .ctx-ttl{padding:7px 12px 4px;font-size:calc(10.5px*var(--fs,1));font-weight:700;letter-spacing:.06em;color:#8b919b;cursor:default;white-space:nowrap}
+.ctx-menu button.danger:hover{background:rgba(214,69,80,.22);color:#ff9aa2}
+/* 順序編號輸入（v2.0 使用者要求）— 分頁後無法透過拖曳移動，因此使用編號移動 */
+.ctx-menu .ord-input{width:100%;box-sizing:border-box;padding:7px 10px;border-radius:7px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;
+  font-family:inherit;font-size:calc(13px*var(--fs,1));font-weight:700;text-align:center}
+.ctx-menu .ord-input:focus{outline:none;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1)}
+.ctx-menu .ord-hint{margin:6px 2px 4px;font-size:calc(10px*var(--fs,1));color:#8b919b;line-height:1.45;text-align:center}
+
+/* ---------- 共用拖曳列表（v1.9 — 提起＋空位＋FLIP） ---------- */
+.dl-row{transition:transform .18s ease}
+.dl-row.lift{transform:scale(1.02) rotate(.4deg);box-shadow:0 14px 34px rgba(0,0,0,.25);cursor:grabbing;position:relative;z-index:10;background:#fff}
+.dl-placeholder{border:1.5px dashed #c3c7cd;border-radius:var(--radius-s);background:rgba(0,0,0,.02)}
+.drag-h{cursor:var(--cur-drag,grab);color:var(--faint);user-select:none;font-size:calc(13px*var(--fs,1))}
+.drag-h:active{cursor:grabbing}
+.mw-no{width:18px;height:18px;border-radius:50%;background:#eef0f2;color:var(--sub);font-size:calc(10px*var(--fs,1));display:grid;place-items:center;flex-shrink:0}
+
+/* ---------- 角色（4.4） ---------- */
+.char-card{background:var(--panel);border-radius:var(--radius);overflow:hidden;cursor:var(--cur-pointer,pointer);transition:.22s;box-shadow:var(--sh-sm)}
+.char-card:hover{transform:translateY(-5px)}
+.char-card .thumb{aspect-ratio:3/4;position:relative;overflow:hidden}
+.char-card .thumb img{width:100%;height:100%;object-fit:cover}
+.char-card .nm{padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.char-card .nm b{font-size:calc(14px*var(--fs,1));letter-spacing:.04em;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} /* 長名稱省略（v1.9） */
+.char-card .nm i{width:11px;height:11px;border-radius:50%;font-style:normal;flex-shrink:0}
+/* 個人資料詳細頁 — 左側分頁・插圖使用 Sticky，資訊依照頁面流程排列（v1.9） */
+.profile-wrap{display:grid;grid-template-columns:64px 1fr 380px;gap:18px;align-items:start;min-height:560px}
+.side-icons{display:flex;flex-direction:column;gap:9px;padding:12px 0;position:sticky;top:10px}
+/* 4 種顏色在設計分頁「角色分頁列表」中設定 · 特殊字元圖示放大 16→19（v1.9 使用者要求） */
+.side-icons button{width:46px;height:46px;border-radius:12px;background:var(--tab-bg,rgba(255,255,255,.08));color:var(--tab-fg,#aab0ba);font-size:calc(19px*var(--fs,1));display:grid;place-items:center;padding-bottom:4px;border:1px solid var(--line-dark);transition:.18s} /* Dingbat 字形向下偏移修正（v1.9 實測 — 使用者微調 +1） */
+.side-icons button:hover{color:var(--tab-on-fg,#fff);background:var(--tab-on-bg,rgba(255,255,255,.16));opacity:.85}
+.side-icons button.on{background:var(--tab-on-bg,var(--panel-solid));color:var(--tab-on-fg,var(--ink));border-color:transparent;opacity:1}
+.profile-center{border-radius:var(--radius);overflow:hidden;position:sticky;top:10px;height:calc(100vh - 150px);min-height:480px}
+.profile-center img{width:100%;height:100%;object-fit:cover}
+/* Sticky 穩定性（v1.9）：捲動到底時，插圖底部 == 資訊面板底部
+   將下方留白固定為計算值 — viewH(100vh-58) - top(10) - artH(100vh-150) = 82px */
+.page-char-detail{padding-bottom:82px}
+.profile-info{padding:24px;overflow:auto}
+/* Serif 只套用於**分頁標題**（v2.0 使用者回報）— 以前的 `.profile-info h3` 會連本文（.prose）中
+   直接撰寫的 h3 一起套用，因此即使更改內文字型，h3 仍會保留 Serif */
+.profile-info h3.tab-tt{font-family:var(--serif);font-size:calc(19px*var(--fs,1));letter-spacing:.14em;margin-bottom:4px}
+.profile-info .sub{font-size:calc(11px*var(--fs,1));color:var(--faint);letter-spacing:.1em;margin-top:7px;margin-bottom:16px}
+.spec{display:grid;grid-template-columns:76px 1fr;gap:7px 10px;font-size:calc(12.5px*var(--fs,1));margin-bottom:18px}
+.spec dt{color:var(--faint);letter-spacing:.06em}
+.spec dd{color:var(--ink)}
+.prose{font-size:calc(14px*var(--fs,1));line-height:1.85;color:#3a3f47}
+.prose b{display:block;margin-bottom:4px}
+.tabnote{margin-top:16px;padding:12px;border:1px dashed var(--line);border-radius:var(--radius-s);font-size:calc(11px*var(--fs,1));color:var(--faint)}
+
+/* ---------- 自設關係（4.5） ---------- */
+.rel-card{background:var(--panel);border-radius:var(--radius);overflow:hidden;cursor:var(--cur-pointer,pointer);transition:.22s;box-shadow:var(--sh-sm)}
+.rel-card:hover{transform:translateY(-5px)}
+.rel-card .thumb{aspect-ratio:4/3;position:relative;overflow:hidden}
+.rel-card .thumb img{width:100%;height:100%;object-fit:cover}
+.rel-card .nm{padding:13px 16px;position:relative}
+/* 長名稱・標語省略（v1.9）— 為成員圓點（.who）預留右側空間 */
+.rel-card .nm b{font-family:var(--serif);font-size:calc(16px*var(--fs,1));letter-spacing:.18em;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rel-card .nm span{font-size:calc(11px*var(--fs,1));color:var(--faint);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:44px}
+/* 成員主題色圓點 — 不另外佔一行，與文字重疊並固定在卡片右下角 */
+.rel-card .nm .who{position:absolute;right:14px;bottom:12px;display:flex;gap:4px}
+.rel-card .nm .who i{width:14px;height:14px;border-radius:50%;font-style:normal;box-shadow:0 0 0 2px var(--panel-solid)} /* 因為顯示在卡片角落，所以縮小（v2.0 使用者要求） */
+/* 自設關係詳細頁 — Header 圖片：全寬模糊＋向下淡出（v1.5） */
+.page-rel-detail{position:relative;max-width:1280px}
+/* 背景上的圖層 — 排除以 absolute 配置的元素（AU・管理員操作・Modal） */
+.page-rel-detail > *:not(.rel-backdrop):not(.modal-ov):not(.au-list):not(.rel-admin-actions){position:relative;z-index:1}
+.rel-backdrop{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100vw;height:600px;z-index:0!important;overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 96%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 96%);}
+/* 只有存在 Header 圖片時才會渲染這個區塊（v2.0）— 以前即使沒有圖片也會放置示範
+   漸層，現在改成沒有圖片時完全不繪製，因此不再需要背景色 */
+.rel-backdrop .img{position:absolute;inset:-40px;filter:blur(16px) brightness(.8) saturate(.9)}
+.rel-backdrop .img img{width:100%;height:100%;object-fit:cover}
+.rel-hero{position:relative;text-align:center;padding:34px 0 10px;color:#fff}
+.rel-hero .quote{position:absolute;top:auto;bottom:-10px;font-family:var(--serif);font-size:calc(15px*var(--fs,1));letter-spacing:.08em;color:#d7dae0}
+.rel-hero .quote.l{left:2%}.rel-hero .quote.r{right:2%}
+.rel-hero .quote::before{content:"\201C";color:var(--q-mark,var(--accent-soft));font-size:calc(22px*var(--fs,1));margin-right:5px} /* 引號顏色 — 在自設關係編輯中分別指定成員顏色（v1.9） */
+.rel-hero .cp-top{margin-bottom:9px} /* CP/NCP 徽章 — 位於自設關係名稱上方中央（v2.0） */
+/* 字距（letter-spacing）會連最後一個字後面也一起增加，置中時會因此向左偏移一半的字距。
+   使用相同數值的 text-indent 將其移回來（v2.0 使用者發現 — 「微妙地沒有置中」的原因 · 透過實測確定數值） */
+.rel-hero h1{font-family:var(--serif);font-size:calc(64px*var(--fs,1));font-weight:600;letter-spacing:.3em;text-indent:.3em;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.rel-hero .catch{font-size:calc(11px*var(--fs,1));letter-spacing:.7em;text-indent:.7em;color:#b9bec7;margin-top:2px}
+.rel-body{display:grid;grid-template-columns:320px 1fr 320px;gap:16px;margin-top:26px;align-items:start}
+/* 簡易個人資料卡 */
+.mini-prof{padding:0;overflow:hidden}
+.mini-prof .hd{display:flex;gap:12px;padding:15px 15px 11px;align-items:center;border-bottom:1px solid var(--line)}
+.mini-prof .hd .face{width:52px;height:52px;border-radius:10px;flex-shrink:0;overflow:hidden}
+/* 名稱・介紹欄位必須可以縮小 — 否則長名稱會將卡片撐寬，
+   導致「單行縮小」無法偵測文字溢出 */
+.mini-prof .hd > div{min-width:0}
+.mini-prof .hd b{font-family:var(--serif);font-size:calc(17px*var(--fs,1));letter-spacing:.16em;display:block}
+.mini-prof .hd small{display:block;margin-top:5px;font-size:calc(9.5px*var(--fs,1));color:var(--faint);letter-spacing:.1em}
+.mini-prof .specs{padding:11px 16px;font-size:calc(11.5px*var(--fs,1));color:var(--sub)}
+.mini-prof .specs div{display:flex;gap:8px;padding:2.5px 0}
+.mini-prof .specs b{color:var(--faint);font-weight:600;min-width:34px}
+.mini-prof .foot{padding:9px 15px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;font-size:calc(9.5px*var(--fs,1));color:var(--faint)}
+.palette-row{display:flex;gap:6px;padding:0 15px 11px}
+.palette-row .gem{display:inline-block;width:14px;height:14px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);cursor:help;position:relative}
+/* 用於邊框的內側菱形（v2.0）— 外層 gem 為邊框顏色，內側為實際顏色 */
+.palette-row .gem i{position:absolute;inset:1px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.kw-row{display:flex;gap:5px;flex-wrap:wrap;padding:0 15px 13px}
+.rel-desc{font-size:calc(11.5px*var(--fs,1));line-height:1.8;color:#454a52;padding:13px 16px;border-top:1px solid var(--line);white-space:pre-line}
+.card-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:11px 15px;border-top:1px dashed var(--line)}
+.card-thumbs .t{aspect-ratio:1;border-radius:7px;overflow:hidden;cursor:var(--cur-pointer,pointer);transition:.15s}
+.card-thumbs .t:hover{opacity:.8}
+/* 中央插圖 — 兩張全身圖重疊／一張插圖（限定 2 人，v1.8） */
+.rel-center{aspect-ratio:3/4.1;border-radius:var(--radius);overflow:hidden;position:relative}
+.rel-center .fb{position:absolute;top:5%;bottom:-2%;width:62%;border-radius:12px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.4))}
+.rel-center .fb-l{left:-4%;z-index:2}
+.rel-center .fb-r{right:-4%;top:12%;z-index:3}
+.rel-center.one-mode .fb{display:none}
+.rel-center .single{position:absolute;inset:0;display:none}
+.rel-center.one-mode .single{display:grid}
+.illu-toggle{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:6;opacity:0;pointer-events:none;transition:opacity .2s}
+.rel-center:hover .illu-toggle{opacity:1;pointer-events:auto}
+/* 只在懸停時顯示的切換器 — 即使位於圖片上方也要清楚可見＋與主題・重點色連動（v1.9 使用者回饋）
+   每個自設關係的顏色為 EDIT 的「全身／插圖切換器顏色」— --illu-bg/--illu-on 以 inline 方式注入 */
+.illu-toggle.seg{background:var(--illu-bg,color-mix(in srgb,var(--btn-dark,#1d2025) 82%,transparent));border-color:color-mix(in srgb,var(--accent-soft,#c96a73) 45%,transparent);backdrop-filter:blur(6px)}
+.illu-toggle.seg button{padding:5px 11px;font-size:calc(10px*var(--fs,1));color:var(--btn-dark-fg,#dfe2e7);opacity:.75}
+.illu-toggle.seg button.on{background:var(--illu-on,var(--accent));color:#fff;opacity:1}
+/* AU 列表（右上方，v1.8）— 在子元素統一 relative 規則後重新固定為 absolute */
+.au-list{display:flex;gap:8px;align-items:flex-start}
+.page-rel-detail > .au-list{position:absolute;top:20px;right:28px;left:auto;z-index:6}
+/* 管理員操作（左上方）— 自設關係修改等 */
+.page-rel-detail > .rel-admin-actions{position:absolute;top:20px;left:28px;z-index:6;display:flex;gap:8px}
+.au-item.add{border-style:dashed;display:grid;place-items:center;color:rgba(255,255,255,.75);font-size:calc(16px*var(--fs,1));background:rgba(255,255,255,.06)}
+.au-item{width:48px;aspect-ratio:1;border-radius:11px;cursor:var(--cur-pointer,pointer);overflow:hidden;position:relative;border:2px solid rgba(255,255,255,.25);transition:.15s}
+.au-item:hover{border-color:rgba(255,255,255,.6)}
+.au-item.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.au-item small{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:calc(8px*var(--fs,1));letter-spacing:.08em;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);z-index:2}
+.sticker{position:absolute;z-index:8;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));pointer-events:none}
+/* 多人自設關係成員列表（4.5） */
+/* 多人自設關係 — Prototype multi-body：左側成員列表（430px）＋右側群體插圖 */
+.multi-body{display:grid;grid-template-columns:430px 1fr;gap:16px;margin-top:26px;align-items:start}
+@media (max-width:960px){.multi-body{grid-template-columns:1fr}}
+.mrow{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);cursor:var(--cur-pointer,pointer);transition:.13s;--cc:93,99,109}
+.mrow:last-child{border:none}
+.mrow:hover{background:rgba(127,127,127,.07)}
+.mrow .face{width:46px;height:46px;border-radius:10px;flex-shrink:0;border-left:3px solid rgb(var(--cc));position:relative;overflow:hidden}
+.mrow .nm{min-width:0}
+.mrow .nm b{font-size:calc(13.5px*var(--fs,1));letter-spacing:.03em}
+.mrow .nm i{font-style:normal;font-family:var(--serif);font-size:calc(10.5px*var(--fs,1));color:var(--faint);letter-spacing:.1em;margin-left:6px}
+.mrow .nm small{display:block;font-size:calc(10.5px*var(--fs,1));color:var(--sub);margin-top:2px}
+.mrow .nm .ext{display:block;font-size:calc(10px*var(--fs,1));color:var(--faint);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .gem-mini{margin-left:auto;display:flex;gap:4px;flex-shrink:0}
+.mrow .gem-mini i{width:12px;height:12px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.mrow .rm{flex-shrink:0;font-size:calc(10.5px*var(--fs,1));color:var(--accent);margin-left:6px}
+.mrow.add{justify-content:center;color:var(--faint);font-size:calc(12px*var(--fs,1))}
+.multi-illust{position:relative;aspect-ratio:16/10;border-radius:var(--radius);overflow:hidden;box-shadow:var(--sh-md);background:#20242a}
+
+.multi-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:var(--cur-pointer,pointer);transition:.13s}
+.multi-row:last-child{border-bottom:none}
+.multi-row:hover{background:#f4f5f7}
+.multi-row .face{width:44px;height:44px;border-radius:10px;flex-shrink:0;overflow:hidden}
+.multi-row b{font-family:var(--serif);font-size:calc(15px*var(--fs,1));letter-spacing:.12em;min-width:90px}
+.multi-row .en{font-size:calc(10px*var(--fs,1));color:var(--faint);letter-spacing:.1em}
+.multi-row .meta{margin-left:auto;font-size:calc(11px*var(--fs,1));color:var(--sub);text-align:right}
+/* 時間軸（4.5） */
+.timeline{margin-top:30px;padding:26px;max-width:1010px;margin-left:auto;margin-right:auto} /* 比內文約窄 200px（v1.8） */
+.tl-item{position:relative;padding:0 0 22px 26px;border-left:1.5px solid var(--line)}
+.tl-item:last-child{padding-bottom:0}
+.tl-item::before{content:"";position:absolute;left:-6px;top:2px;width:10px;height:10px;border-radius:50%;background:#fff;border:2.5px solid var(--steel-3)}
+.tl-item .era{font-size:calc(10px*var(--fs,1));letter-spacing:.15em;color:var(--faint);margin-bottom:4px}
+.tl-item .desc{font-size:calc(12.5px*var(--fs,1));line-height:1.75;color:#3a3f47;margin-bottom:9px;white-space:pre-line}
+/* 對話框：角色主題色（--cc，低透明度）— 透過左右 19% 邊距集中到中央（v1.8） */
+.tl-say{max-width:48%;margin-bottom:7px;--cc:93,99,109}
+.tl-say.l{margin-left:19%}
+.tl-say.r{margin-right:19%}
+.timeline.multi .tl-say.l{margin-left:0;max-width:62%} /* 多人：靠左對齊 */
+.tl-say .who{font-size:calc(10px*var(--fs,1));letter-spacing:.1em;color:rgb(var(--cc));font-weight:700;margin-bottom:3px}
+.tl-say .bub{display:inline-block;padding:8px 13px;border-radius:12px;font-size:calc(12px*var(--fs,1));line-height:1.6;white-space:pre-line;
+  background:rgba(var(--cc),.10);border:1px solid rgba(var(--cc),.22);color:var(--ink)}
+.tl-say.l .bub{border-bottom-left-radius:3px}
+.tl-say.r{margin-left:auto;text-align:right}
+.tl-say.r .bub{border-bottom-right-radius:3px}
+.drag-hint{font-size:calc(10px*var(--fs,1));color:var(--faint);border:1px dashed var(--line);padding:6px 10px;border-radius:8px;display:inline-block;margin-top:12px}
+/* 時間軸／問答分頁（v1.8） */
+.rel-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+/* 僅限直屬按鈕（分頁）— 修正右側操作按鈕（.btn）使用 margin-bottom:-1px 覆蓋下方邊框的問題（v1.9） */
+.rel-tabs > button{font-family:var(--serif);letter-spacing:.2em;font-size:calc(15px*var(--fs,1));color:var(--faint);padding:6px 14px 12px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s}
+.rel-tabs > button:hover{color:var(--ink)}
+.rel-tabs > button.on{color:var(--ink);border-bottom-color:var(--ink)}
+/* 手機版 — 使用圖示而不是文字（v2.0 使用者要求）。在窄螢幕下按鈕文字會一個個撐開，
+   導致分頁列換成兩行。將分頁縮寫為 T・Q，並加大間距以便區分。
+   按鈕使用 inline style 設定 padding，因此這裡必須使用 !important 壓過 */
+.lb-m{display:none}
+@media (max-width:620px){
+  .lb-pc{display:none}
+  .lb-m{display:inline}
+  .rel-tabs{gap:16px}
+  .rel-tabs > button{padding:6px 2px 10px;letter-spacing:0}
+  .rel-tabs .btn{padding:0 11px !important;min-width:40px;font-size:calc(14px*var(--fs,1)) !important}
+}
+/* 雙人問答（QUESTIONS，v1.8）— PC 基準高度 700px */
+.qa-wrap{display:grid;grid-template-columns:1fr 290px;gap:18px;height:700px}
+/* 只讓回答區捲動，輸入欄固定在下方（v2.0 使用者發現）— 以前輸入欄也放在同一個區塊中，
+   因此回答變長時輸入欄會被往下推，導致 UI 錯位 */
+.qa-today{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.qa-answers{flex:1;min-height:0;overflow:auto;padding-right:6px;scrollbar-color:var(--sb-thumb,#c9ccd2) transparent;scrollbar-width:thin;display:flex;flex-direction:column}
+.qa-no{font-size:calc(10px*var(--fs,1));letter-spacing:.3em;color:var(--faint)}
+.qa-q{font-family:'Noto Serif KR',serif;font-size:calc(20px*var(--fs,1));font-weight:700;line-height:1.5;margin:6px 0 4px}
+/* 問題的擁有者說明 — 位於問題正下方，比回答低一個色調（v2.0） */
+.qa-note{
+  font-size:calc(12px*var(--fs,1));line-height:1.75;color:var(--sub);
+  border-left:2px solid var(--line-dark);padding:2px 0 2px 10px;margin:0 0 6px;white-space:pre-wrap;
+}
+.qa-date{font-size:calc(10.5px*var(--fs,1));color:var(--faint);margin-bottom:18px}
+.qa-ans{margin-bottom:14px;--cc:93,99,109;max-width:88%}
+/* 名稱放大一級（v2.0 使用者要求）— 讓回答者更容易辨識 */
+.qa-ans .who{font-size:calc(11.5px*var(--fs,1));letter-spacing:.1em;color:rgb(var(--cc));font-weight:700;margin-bottom:3px}
+.qa-ans .bub{display:inline-block;position:relative;padding:9px 14px;border-radius:12px;border-top-left-radius:3px;font-size:calc(12.5px*var(--fs,1));line-height:1.7;
+  background:rgba(var(--cc),.10);border:1px solid rgba(var(--cc),.22);color:var(--ink);white-space:pre-line}
+.qa-ans.r{margin-left:auto;text-align:right}
+.qa-ans.r .bub{border-radius:12px;border-top-right-radius:3px}
+/* 多人自設關係回答改為置中＋限制寬度 — 長文字也會保留左右留白並置於中央（v1.9 使用者要求） */
+.timeline.multi .qa-ans{margin-left:auto;margin-right:auto;max-width:min(560px,86%);text-align:center}
+.timeline.multi .qa-ans .bub{border-radius:12px;text-align:left}
+/* 擁有者補充說明 — 右上角主題色圓點＋懸停 Tooltip（v1.8） */
+.qa-ans .bub[data-note]{cursor:help}
+.qa-ans .bub[data-note]::before{content:"";position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:rgb(var(--cc));box-shadow:0 0 0 2px var(--panel-solid)}
+.qa-ans .bub[data-note]:hover::after{
+  content:attr(data-note);position:absolute;left:0;bottom:calc(100% + 7px);z-index:20;width:max-content;max-width:240px;
+  background:rgba(28,31,37,.96);color:#dfe2e7;font-size:calc(11px*var(--fs,1));line-height:1.6;padding:8px 12px;border-radius:9px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);text-align:left;white-space:normal;
+}
+.qa-ans.r .bub[data-note]:hover::after{left:auto;right:0}
+.qa-input{flex-shrink:0;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:11px;align-items:stretch}
+.qa-input .char-pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:var(--cur-pointer,pointer);flex-shrink:0}
+.qa-input .char-pick .f{width:56px;height:56px;border-radius:12px;overflow:hidden} /* 配合輸入欄高度放大（v1.9 使用者回饋） */
+.qa-input .char-pick small{font-size:calc(11px*var(--fs,1));font-weight:600;color:var(--ink);white-space:nowrap} /* 名稱放大（v1.9 使用者回饋） */
+.qa-list{display:flex;flex-direction:column;border-left:1px solid var(--line);padding-left:18px;overflow:hidden}
+.qa-search{display:flex;align-items:center;gap:7px;border:1.5px solid var(--line);border-radius:9px;background:#fff;padding:7px 11px;margin-bottom:11px}
+.qa-search input{border:none;outline:none;font-size:calc(12px*var(--fs,1));flex:1;background:none;color:var(--ink)}
+.qa-search span{color:var(--faint);font-size:calc(13px*var(--fs,1))}
+.qa-scroll{overflow:auto;flex:1;scrollbar-color:var(--sb-thumb,#c9ccd2) transparent;scrollbar-width:thin}
+/* 隱藏回答 — 整個回答區只顯示一行（v2.0 使用者確認）。如果逐一隱藏對話框，
+   就會透露有幾個人、以及回答順序，因此連數量本身都不顯示 */
+.qa-locked{flex:1;display:grid;place-items:center;color:var(--faint);letter-spacing:.22em;font-size:calc(12.5px*var(--fs,1))}
+.qa-item{padding:10px 11px;border-radius:9px;cursor:var(--cur-pointer,pointer);transition:.13s;margin-bottom:2px}
+.qa-item:hover{background:#f0f1f4}
+/* 選取的問題 — 使用與深色按鈕相同的顏色。
+   以前直接使用 --ink（最深的文字顏色），因此比其他選取狀態特別深。
+   深色按鈕顏色是在設計分頁中設定的值，因此修改首頁顏色時這裡也會同步跟著變 */
+.qa-item.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff)}
+.qa-item b{font-size:calc(12px*var(--fs,1));display:block;line-height:1.5;font-weight:600}
+.qa-item small{font-size:calc(10px*var(--fs,1));color:var(--faint)}
+.qa-item.on small{color:var(--btn-dark-fg,#fff);opacity:.72}
+/* 自設關係連結列表（角色扮演・TRPG）也縮窄至中央 */
+.page-rel-detail .g2{max-width:1010px;margin-left:auto;margin-right:auto}
+
+/* ---------- 行事曆（4.12）— 月曆＋右側 Widget ---------- */
+.cal-layout{display:grid;grid-template-columns:1fr 270px;gap:16px;align-items:start}
+@media (max-width:960px){.cal-layout{grid-template-columns:1fr}}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cal-head b{font-family:var(--serif);font-size:calc(20px*var(--fs,1));letter-spacing:.2em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-grid .dow{text-align:center;font-size:calc(10px*var(--fs,1));letter-spacing:.2em;color:var(--faint);padding:6px 0}
+.cal-cell{aspect-ratio:1/1.02;border-radius:9px;padding:7px 8px;font-size:calc(11px*var(--fs,1));color:var(--sub);background:#fff;border:1px solid var(--line);transition:.13s;cursor:var(--cur-pointer,pointer);overflow:hidden}
+.cal-cell:hover{border-color:var(--steel-3)}
+.cal-cell.dim{opacity:.35}
+/* 行事曆右側欄 — 因為是多個短列表卡片垂直堆疊的位置，
+   比主 Widget 預設值更緊湊（v2.0 使用者回饋：垂直間距太寬） */
+.cal-side{gap:8px}
+.cal-side .panel.widget{padding:13px 14px}
+.cal-side .panel.widget h4{margin-bottom:7px}
+.cal-side .dday-row{padding:4px 0}
+.cal-cell.today{border:1.5px solid var(--ink)}
+/* 目前選取的日期（v2.0）— 右側卡片會顯示這一天的行程。
+   顯示會遵循**與其他焦點顯示相同的設定**（設計 > 輸入焦點）（v2.0 使用者發現）。
+   以前環的顏色固定為預設強調色（紅色），因此更換強調色後只有邊框會改變，
+   擴散的環仍然是紅色，看起來就會不一致 */
+.cal-cell.picked{border-color:var(--focus-bd,var(--accent));box-shadow:var(--focus-ring,0 0 0 2px rgba(166,58,69,.16))}
+/* 月曆格最多顯示上方 3 個 — 其餘只顯示數量 */
+.cal-cell .ev.more{background:transparent;color:var(--faint);font-weight:700;padding-left:0}
+.cal-cell .ev{margin-top:4px;font-size:calc(11.5px*var(--fs,1));padding:3px 7px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600} /* 行程文字放大 9.5→11.5（v1.9 使用者回饋） */
+
+/* ---------- Diary（4.14）— 左側列表＋右側迷你月曆 ---------- */
+.dy-layout{display:grid;grid-template-columns:1fr 250px;gap:14px} /* 完整內容寬度 · 兩欄高度一致（stretch） */
+/* 中等畫面不將月曆移到下方 — 只縮小側欄寬度，僅在手機版移到下方（v1.9 使用者確認） */
+@media (max-width:960px){.dy-layout{grid-template-columns:1fr 210px}}
+@media (max-width:620px){.dy-layout{grid-template-columns:1fr}}
+.dy-cal{padding:16px;align-self:start} /* 只依月曆大小決定 — 僅與日記面板的起始高度一致 */
+.dy-cal .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dy-cal .hd b{font-size:calc(12.5px*var(--fs,1));letter-spacing:.04em}
+.dy-cal .hd button{width:26px;height:26px;border-radius:7px;color:var(--sub);font-size:calc(14px*var(--fs,1));transition:.13s}
+.dy-cal .hd button:hover{background:rgba(127,127,127,.12);color:var(--ink)}
+.dy-cal .wk{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:3px}
+.dy-cal .wk span{text-align:center;font-size:calc(9px*var(--fs,1));color:var(--faint);letter-spacing:.05em;padding:2px 0}
+.dy-cal .days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dy-cal .days span{aspect-ratio:1}
+.dy-cal .days button{aspect-ratio:1;border-radius:7px;font-size:calc(10.5px*var(--fs,1));color:var(--faint);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:.12s;cursor:default}
+.dy-cal .days button.has{color:var(--ink);font-weight:600;cursor:var(--cur-pointer,pointer)}
+.dy-cal .days button.has:hover{background:rgba(127,127,127,.12)}
+.dy-cal .dots{display:flex;gap:2px;height:4px}
+.dy-cal .dots i{width:4px;height:4px;border-radius:50%}
+
+/* ---------- Diary（4.14）— 手風琴列表 ---------- */
+.dy-row{border-bottom:1px dashed var(--line)}
+.dy-row:last-child{border-bottom:none}
+/* 摺疊：標題垂直置中／展開：向上對齊（v1.8）— 維持固定內距以避免跳動 */
+.dy-row .hd{display:flex;align-items:center;gap:12px;padding:13px 2px;cursor:var(--cur-pointer,pointer);user-select:none;transition:.15s}
+/* 展開時也與關閉時維持相同的垂直對齊 — 標題貼在 30px 心情圖示上方，
+   導致標題與本文之間看起來間距變大的原因（v2.0 使用者要求） */
+.dy-row.open .hd{align-items:center;padding-bottom:3px}
+/* 平滑手風琴 — 內容始終渲染，使用 grid-rows 0fr→1fr 的轉場 */
+.dy-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;}
+.dy-row.open .dy-fold{grid-template-rows:1fr}
+.dy-fold-in{min-height:0;overflow:hidden}
+.dy-row .tt{font-size:calc(13.5px*var(--fs,1));min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dy-row .dt{margin-left:auto;font-size:calc(10.5px*var(--fs,1));color:var(--faint);white-space:nowrap;flex-shrink:0}
+.dy-row .arr{width:7px;height:7px;border:solid var(--faint);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);transition:.2s;flex-shrink:0;margin-top:-3px}
+.dy-row .arr.up{transform:rotate(-135deg);margin-top:3px}
+/* 標題與本文之間 — 減少與第一段的上方空白疊加後，看起來過大的間距（v2.0 使用者要求） */
+.dy-row .dy-body{padding:0 2px 16px 44px}
+.dy-row .dy-body .post-body>*:first-child{margin-top:0}
+/* Diary 圖片 — 不使用大型原圖，而是縮圖列表，點擊後開啟檢視器（v1.9 使用者確認） */
+/* 不使用背景與陰影，只顯示圖片（v1.9 使用者回饋） */
+.dy-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;background:none}
+.dy-thumb{width:96px;aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;cursor:var(--cur-pointer,pointer);transition:.15s;background:none}
+.dy-thumb:hover{transform:translateY(-2px)}
+@media (max-width:620px){.dy-thumb{width:76px}}
+.dy-row .dy-body .post-body{font-size:calc(14px*var(--fs,1));line-height:1.85}
+
+/* ---------- 委託（4.18） ---------- */
+.cm-total-slot{display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;background:var(--panel);box-shadow:var(--sh-sm);font-size:calc(11.5px*var(--fs,1));font-weight:700;letter-spacing:.14em;color:var(--sub);cursor:default}
+.cm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:960px){.cm-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.cm-grid{grid-template-columns:1fr}}
+.cm-card{padding:0;overflow:visible;cursor:var(--cur-pointer,pointer);transition:.2s} /* 讓槽位 Tooltip 可以超出卡片範圍 */
+.cm-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.cm-card .th{position:relative;overflow:hidden;border-radius:var(--radius) var(--radius) 0 0}
+.cm-card .cm-badge{position:absolute;top:9px;right:9px;z-index:3}
+.cm-card .bd{padding:14px 16px 16px}
+/* 文字逐級放大，金額・槽位靠右對齊（v2.0 使用者要求） */
+.cm-card .nm{display:block;font-size:calc(15.5px*var(--fs,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis} /* 長標題省略（v1.9） */
+.cm-card .sub{display:block;font-size:calc(10.5px*var(--fs,1));letter-spacing:.18em;color:var(--faint);margin-top:2px}
+.cm-card .price{margin-top:8px;font-family:var(--serif);font-size:calc(16.5px*var(--fs,1));letter-spacing:.03em;text-align:right}
+.cm-card .slotline{text-align:right}
+.cm-card .slot{display:inline-block;margin-top:5px;font-size:calc(11.5px*var(--fs,1));font-weight:700;letter-spacing:.08em}
+/* 詳細頁面 */
+.cm-hero{text-align:center;margin:0 0 20px}
+.cm-hero h2{font-family:var(--serif);font-size:calc(34px*var(--fs,1));font-weight:600;letter-spacing:.1em;color:var(--page-title)}
+.cm-hero small{display:block;margin-top:4px;font-size:calc(11.5px*var(--fs,1));letter-spacing:.32em;color:var(--page-desc)}
+/* 移除硬編碼背景＋圖片不裁切，維持框架內比例（與圖庫單一型相同規則，v1.9） */
+.cm-viewer{position:relative;aspect-ratio:16/10;border-radius:var(--radius);overflow:hidden;box-shadow:var(--sh-md)}
+.cm-viewer .nav{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:36px;height:36px;border-radius:50%;background:rgba(15,17,20,.55);color:#fff;font-size:13px;display:grid;place-items:center}
+.cm-viewer:hover .hv-actions{opacity:1;pointer-events:auto}
+.cm-strip{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.cm-strip .t{position:relative;width:76px;aspect-ratio:4/3;border-radius:8px;overflow:hidden;cursor:var(--cur-pointer,pointer);outline:2px solid transparent;outline-offset:2px;transition:.15s}
+.cm-strip .t.on{outline-color:var(--accent)}
+.cm-meta{margin-top:16px;text-align:right}
+.cm-meta .price{font-family:var(--serif);font-size:calc(26px*var(--fs,1));letter-spacing:.04em;color:var(--page-title)}
+.cm-meta .due{margin-top:3px;font-size:calc(11.5px*var(--fs,1));color:var(--page-desc)}
+.cm-meta .slot-row{margin-top:10px;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+/* 槽位圖示（14px）與 SLOT n/n 文字（11px）基準線不同而產生偏移 — 使用 flex 垂直置中對齊 */
+.cm-meta .slots{display:inline-flex;align-items:center;font-size:calc(14px*var(--fs,1));color:var(--page-title);cursor:default}
+.cm-meta .slots b{font-size:calc(11px*var(--fs,1));letter-spacing:.12em}
+.cm-meta .mail{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--panel);color:var(--accent);box-shadow:var(--sh-sm);transition:.15s}
+.cm-meta .mail:hover{transform:translateY(-2px)}
+/* 申請者列表 */
+.ap-layout{display:grid;grid-template-columns:1fr 210px;gap:14px;align-items:start} /* 完整內容寬度 · 篩選器只依自身高度（與列表獨立） */
+.ap-layout > .tagside{align-self:start}
+@media (max-width:960px){.ap-layout{grid-template-columns:1fr}}
+.ap-row{display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1px dashed var(--line);transition:.13s}
+.ap-row:last-child{border-bottom:none}
+.ap-row:hover{background:rgba(127,127,127,.05)}
+.ap-row .dl{width:100px;flex-shrink:0} /* 沒有截止日期的資料列也維持相同寬度 — 保持欄位對齊 */
+.ap-row .dl small{display:block;font-size:calc(8.5px*var(--fs,1));letter-spacing:.2em;color:var(--faint)}
+.ap-row .dl b{font-size:calc(15px*var(--fs,1));letter-spacing:.04em;white-space:nowrap} /* 包含年份 · 粗體文字（4.18） */
+.ap-row .bwrap{width:78px;display:grid;place-items:center;flex-shrink:0} /* 徽章固定寬度 — 即使文字數量不同也維持對齊 */
+.ap-row .who{flex:1;min-width:0}
+/* 寬度縮小時只讓名稱區域持續縮小（省略文字）— 中等畫面下徽章・種類不會掉到下一行（v1.9 使用者確認） */
+.ap-row .who b{display:block;font-size:calc(13px*var(--fs,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-row .who small{display:block;font-size:calc(10px*var(--fs,1));color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 垃圾桶中顯示的剩餘期間＋復原／永久刪除（v2.0） */
+.ap-row .ap-trash{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.ap-row .ap-trash small{font-size:calc(10px*var(--fs,1));color:var(--faint);white-space:nowrap}
+.ap-row .ap-trash .btn{height:24px;padding:0 10px;font-size:calc(10.5px*var(--fs,1));display:inline-flex;align-items:center}
+
+/* 僅在手機版將處理狀態・委託種類移到下一列（v1.9 使用者確認） */
+@media (max-width:620px){
+  .ap-row{display:grid;grid-template-columns:auto 1fr 28px;gap:3px 12px;align-items:center}
+  .ap-row .dl{grid-row:1;grid-column:1;width:auto}
+  .ap-row .who{grid-row:1;grid-column:2;min-width:0}
+  .ap-row .lock{grid-row:1;grid-column:3}
+  .ap-row .ap-trash{grid-row:3;grid-column:1/4;justify-content:flex-end}
+  .ap-row .bwrap{grid-row:2;grid-column:1;width:auto;justify-content:start;display:flex}
+  .ap-row .kind{grid-row:2;grid-column:2/4;white-space:normal}
+}
+.ap-row .kind{font-size:calc(11.5px*var(--fs,1));color:var(--sub);white-space:nowrap}
+.ap-row .lock{display:grid;place-items:center;width:28px;flex-shrink:0}
+.drag-h.idle{opacity:.25;cursor:default;pointer-events:none} /* 拖曳僅在編輯模式下（4.18） */
+
+/* ---------- 橫向篩選 Chip 分頁（橡果等 — 位於頁面背景上） ---------- */
+.tag-row{display:flex;gap:7px;flex-wrap:wrap}
+.tag-row .tag{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;
+  font-size:calc(12px*var(--fs,1));cursor:var(--cur-pointer,pointer);transition:.15s;user-select:none;
+  background:var(--panel);color:var(--sub);box-shadow:var(--sh-sm);
+}
+.tag-row .tag small{font-size:calc(10px*var(--fs,1));color:var(--faint)}
+.tag-row .tag:hover{color:var(--ink);transform:translateY(-1px)}
+/* 選取的篩選 = 連動深色按鈕顏色（v1.9 使用者確認） */
+.tag-row .tag.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff)}
+.tag-row .tag.on small{color:var(--btn-dark-fg,#aab0ba);opacity:.65}
+
+/* ---------- TRPG 橡果（4.15）— 4 欄卡片網格 ---------- */
+.dt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:960px){.dt-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.dt-grid{grid-template-columns:1fr}}
+.dt-card{padding:0;overflow:hidden;transition:.2s}
+.dt-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.dt-card .th{position:relative;aspect-ratio:16/9;overflow:hidden}
+.dt-card .bd{padding:13px 15px 15px}
+/* 標題過長時不增加為兩行，而是使用省略號（v1.9 使用者確認 — 維持卡片高度） */
+.dt-card .nm{display:block;font-size:calc(13.5px*var(--fs,1));line-height:1.5;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dt-card .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 有連結的劇本名稱 — 點擊後開啟新分頁（與卡片點擊＝編輯分開） */
+.dt-card .nm.has-link{cursor:var(--cur-pointer,pointer);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line)}
+.dt-card .nm.has-link:hover{color:var(--accent);text-decoration-color:var(--accent)}
+.dt-card .meta{display:block;margin-top:3px;font-size:calc(10.5px*var(--fs,1));line-height:1.5;color:var(--faint)}
+/* 標籤列不論有無標籤都佔用相同位置 — 避免因有無標籤導致卡片高度不同（v2.0 使用者要求）。
+   即使標籤很多也只顯示一行（超出部分會被裁切） */
+.dt-card .kw-row{margin-top:7px;height:22px;overflow:hidden;flex-wrap:nowrap}
+/* 狀態徽章 — 只顯示空頭支票・日程確定，位於圖片右上角（4.15） */
+/* 顏色在環境設定 > TRPG 分頁中依狀態指定（inline style） */
+/* 修正韓文字形向上偏移（v1.9 實測）— line-height 11px＋上下對稱 padding（字形中心＝徽章中心） */
+.dt-badge{position:absolute;top:8px;right:8px;z-index:3;font-size:calc(10px*var(--fs,1));line-height:calc(11px*var(--fs,1));font-weight:700;letter-spacing:.08em;padding:4px 10px;border-radius:999px;color:#fff;white-space:nowrap}
+/* 卡片管理按鈕 — 只在圖片懸停時顯示 */
+.dt-actions{position:absolute;top:8px;left:8px;z-index:3;display:flex;gap:5px}
+.dt-actions button{font-size:calc(10px*var(--fs,1));padding:4px 9px;border-radius:999px;background:rgba(15,17,20,.55);color:#dfe2e7}
+.dt-actions button.del{background:color-mix(in srgb,var(--accent) 75%,transparent);color:#fff}
+.dt-card:hover .hv-actions{opacity:1;pointer-events:auto}
+/* 卡片內標籤 — 移除父層 kw-row 的個人資料用 padding（左側對齊） */
+.dt-card .kw-row{padding:0}
+/* 狀態切換彈窗（管理員 — 點擊懸停操作的 [狀態] 時） */
+.dt-status-pop{
+  position:absolute;top:36px;left:8px;z-index:6;display:grid;gap:2px;padding:5px;
+  background:var(--dd-bg);border:1px solid var(--line-dark);border-radius:10px;box-shadow:var(--sh-dd);
+  animation:fade .15s;
+}
+.dt-status-pop button{font-size:calc(11px*var(--fs,1));padding:6px 14px;border-radius:7px;color:var(--dd-fg);text-align:left;transition:.13s;white-space:nowrap}
+.dt-status-pop button:hover{background:var(--dd-hv)}
+.dt-status-pop button.on{background:var(--accent);color:#fff}
+
+/* ---------- TRPG 遊玩紀錄（4.16）— 表格 ---------- */
+.pl-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:calc(12.5px*var(--fs,1))}
+.pl-table col.c-date{width:92px}
+.pl-table col.c-wr{width:90px}
+.pl-table col.c-role{width:76px}   /* 放入 CoC 7th 等規則標記 — 從劇本・With 各取 10px（v2.0 使用者要求） */
+.pl-table col.c-pt{width:82px}
+.pl-table col.c-url{width:36px}    /* 最後的剪輯欄位 */
+.pl-table col.c-mng{width:58px}
+.pl-table col.c-with{width:21%}   /* 從 22% 分出約 10px 給規則欄 — col 無法使用 calc，因此換算成 %（v2.0） */
+.pl-table th{font-size:calc(10px*var(--fs,1));letter-spacing:.14em;color:var(--faint);font-weight:600;text-align:center;padding:10px 6px;border-bottom:1.5px solid var(--line)}
+.pl-table th.sortable{cursor:var(--cur-pointer,pointer);user-select:none}
+.pl-table th.sortable:hover{color:var(--ink)}
+/* 將行高固定為 px — 如果使用倍數（1.55），不同字型會產生小數點，導致每行出現些微錯位 */
+.pl-table td{padding:10px 6px;line-height:calc(20px*var(--fs,1));border-bottom:1px dashed var(--line);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-table tr:last-child td{border-bottom:none}
+.pl-table .td-sc{font-weight:600}  /* Scenario — 最寬並置中對齊（4.16） */
+.pl-table .td-sc a{border-bottom:1px solid var(--line);transition:.15s}
+.pl-table .td-sc a:hover{color:var(--accent);border-color:var(--accent)}
+.pl-table .td-role{font-size:calc(11px*var(--fs,1));letter-spacing:.06em;color:var(--sub)}
+.pl-table .td-date{font-size:calc(11.5px*var(--fs,1));color:var(--sub);letter-spacing:.03em}
+/* Playtime 下劃線・分頁移動僅限手機版 — PC 由最右側剪輯欄位負責（4.16） */
+@media (max-width:620px){
+  .pl-table .td-pt.linked{text-decoration:underline;text-underline-offset:3px;cursor:var(--cur-pointer,pointer)}
+  .pl-table .td-pt.linked:active{color:var(--accent)}
+}
+.pl-table .td-url{position:relative}
+.pl-table .td-url a{position:absolute;inset:0;margin:auto;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;color:var(--sub);transition:.14s}
+.pl-table .td-url a:hover{background:rgba(127,127,127,.14);color:var(--ink)}
+.pl-table .td-mng button{width:22px;height:22px;border-radius:6px;font-size:calc(10.5px*var(--fs,1));color:var(--faint);transition:.13s;vertical-align:middle;margin:-2px 0}
+.pl-table .td-mng button:hover{background:rgba(127,127,127,.14);color:var(--ink)}
+/* 手機版預設 4 欄：Date/Scenario/Role/Playtime（4.16 — 欄位選擇設定會在選單管理實作時加入） */
+@media (max-width:620px){.pl-table .hide-m,.pl-table col.c-wr,.pl-table col.c-with,.pl-table col.c-url,.pl-table col.c-mng{display:none}}
+
+/* ---------- 圖片留言板載入紀錄（4.10） ---------- */
+.roadview-item{display:grid;grid-template-columns:1fr 390px;margin-bottom:22px;overflow:hidden;padding:0} /* 擴大右側留言欄寬度（320→390） */
+/* 每張圖片上方編號區域（v1.9）— 只顯示數字 */
+.roadview-item .rv-head{grid-column:1/-1;padding:11px 18px;border-bottom:1px solid var(--line)}
+.roadview-item .rv-head b{font-size:calc(13.5px*var(--fs,1));letter-spacing:.08em}
+.roadview-item .art{position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
+/* 載入紀錄編輯・刪除 — 只在圖片懸停時顯示 */
+.rv-actions{opacity:0;pointer-events:none;transition:opacity .15s}
+.roadview-item .art:hover .rv-actions{opacity:1;pointer-events:auto}
+/* Banner 管理・裝飾圖片設定 — 只在懸停時顯示 */
+.hv-actions{opacity:0;pointer-events:none;transition:opacity .15s}
+.banner:hover .hv-actions,.deco-wgt:hover .hv-actions{opacity:1;pointer-events:auto}
+.roadview-item .artimg{display:block;width:100%;height:auto}
+.roadview-item .artimg.narrow{width:min(400px,100%)} /* 窄圖片：不放大，保持置中（v1.8） */
+.roadview-item .art img{display:block;max-width:100%;height:auto;margin:0 auto}
+.roadview-item .art .meta{position:absolute;left:18px;bottom:14px;color:#fff;z-index:3;font-size:calc(11px*var(--fs,1))}
+.roadview-item .art .meta b{display:block;font-size:calc(15px*var(--fs,1));letter-spacing:.06em}
+/* 留言輸入框永遠位於側欄最下方 — 即使圖片很高，列表也會透過內部捲動吸收高度 */
+.cmt-side{display:flex;flex-direction:column;border-left:1px solid var(--line);min-height:0;height:100%}
+.cmt-side .list{flex:1;min-height:120px;padding:16px;overflow:auto;scrollbar-color:var(--sb-thumb,#c9ccd2) transparent;scrollbar-width:thin}
+.roadview-item{grid-auto-rows:minmax(0,auto)}
+.roadview-item .cmt-side{max-height:none}
+
+/* ---------- 圖片備份（4.11） ---------- */
+.g-item{overflow:hidden;padding:0;cursor:var(--cur-pointer,pointer);transition:.2s}
+.g-item:hover{transform:translateY(-4px)}
+.g-item .thumb{aspect-ratio:4/3;position:relative;overflow:hidden}
+.g-item .thumb img{width:100%;height:100%;object-fit:cover}
+.g-item .typ{position:absolute;top:10px;left:10px;z-index:3}
+.g-item .info{padding:12px 15px}
+.g-item .info b{font-size:calc(13px*var(--fs,1));display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-item .info small{color:var(--faint);font-size:calc(10.5px*var(--fs,1))}
+.list-item{display:flex;gap:14px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line);cursor:var(--cur-pointer,pointer);transition:.13s}
+.list-item:last-child{border-bottom:none}
+.list-item:hover{background:#f4f5f7}
+.list-item .th{width:74px;height:52px;border-radius:8px;flex-shrink:0;overflow:hidden}
+.list-item b{font-size:calc(13px*var(--fs,1));display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-item small{color:var(--faint);font-size:calc(11px*var(--fs,1))}
+.upzone{border:2px dashed #c3c7ce;border-radius:var(--radius-s);background:#fafafb;padding:30px 20px;text-align:center;color:var(--faint);font-size:calc(12px*var(--fs,1));cursor:var(--cur-pointer,pointer);transition:.18s;margin-bottom:12px}
+.upzone:hover{border-color:var(--steel-3);color:var(--sub)}
+/* 選取的圖片資料列 — 使用較大的縮圖呈現「已選取」的感覺（4.11） */
+.upfile-count{font-size:calc(11px*var(--fs,1));color:var(--sub);letter-spacing:.05em;margin:2px 0 8px}
+.upfile-row{display:flex;align-items:center;gap:12px;padding:9px 10px;border:1.5px solid var(--line);border-radius:var(--radius-s);background:#fff;margin-bottom:8px}
+.upfile-row .pv{width:86px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#eef0f2}
+.upfile-row .pv img{width:100%;height:100%;object-fit:cover}
+.upfile-row .nm{min-width:0;flex:1}
+.upfile-row .nm b{display:block;font-size:calc(12.5px*var(--fs,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.upfile-row .nm small{color:var(--faint);font-size:calc(10.5px*var(--fs,1))}
+.upfile-row .fx{cursor:var(--cur-pointer,pointer);color:var(--faint);width:24px;height:24px;display:grid;place-items:center;border-radius:6px;transition:.13s;flex-shrink:0}
+.upfile-row .fx:hover{background:#f2e6e7;color:var(--accent)}
+/* 單張檢視器 */
+/* 移除硬編碼背景（深藍色）— 讓透明圖片直接放在面板（主題）顏色上。
+   檢視器固定為 16:10 框架 — 即使圖片尺寸改變，視窗大小也不變，小圖片會置中 */
+.single-viewer{position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:16/10}
+.single-viewer .nav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(15,17,20,.45);color:#fff;display:grid;place-items:center;font-size:calc(15px*var(--fs,1));opacity:0;transition:.15s;z-index:2}
+.single-viewer:hover .nav{opacity:1}
+.single-viewer .nav:hover{background:rgba(15,17,20,.75)}
+.thumb-strip{display:flex;gap:8px;margin-top:10px;justify-content:center}
+.thumb-strip .t{width:64px;height:48px;border-radius:8px;overflow:hidden;cursor:var(--cur-pointer,pointer);opacity:.6;transition:.15s;border:2px solid transparent}
+.thumb-strip .t:hover{opacity:1}
+/* 選取的縮圖 — 與表情條使用相同基準（設計分頁「輸入焦點」） */
+.thumb-strip .t.on{opacity:1;border-color:var(--focus-bd,var(--accent));box-shadow:var(--focus-ring,none)}
+
+/* ---------- TRPG 備份（4.3）— 票券型面板 ---------- */
+.trpg-layout{display:grid;grid-template-columns:1fr 190px;gap:16px;align-items:start}
+.ticket{display:grid;grid-template-columns:420px 1fr;background:var(--panel);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;cursor:var(--cur-pointer,pointer);box-shadow:var(--sh-sm);transition:.2s;position:relative}
+.ticket:hover{transform:translateY(-3px)}
+.ticket .stub-line{position:absolute;left:420px;top:0;bottom:0;border-right:2px dashed #c9ccd2;z-index:4}
+/* 裁切線上下的半圓缺口 — 不填色，而是使用遮罩製作真正的透明孔洞（不受亮／暗模式影響） */
+.ticket{--notch-x:421px;
+  -webkit-mask-image:
+    radial-gradient(circle at var(--notch-x) 0, transparent 8.5px, #000 9px),
+    radial-gradient(circle at var(--notch-x) 100%, transparent 8.5px, #000 9px);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    radial-gradient(circle at var(--notch-x) 0, transparent 8.5px, #000 9px),
+    radial-gradient(circle at var(--notch-x) 100%, transparent 8.5px, #000 9px);
+  mask-composite:intersect;
+}
+.ticket .wide{position:relative;min-height:calc(420px*9/16);height:100%;overflow:hidden}
+.ticket .wide img{width:100%;height:100%;object-fit:cover}
+.ticket .wide .no{position:absolute;left:16px;top:12px;font-family:var(--serif);color:rgba(255,255,255,.55);letter-spacing:.3em;font-size:calc(11px*var(--fs,1))}
+.ticket .stub{padding:24px 22px 16px 30px;display:flex;flex-direction:column;gap:6px;min-width:0;overflow:hidden}
+.ticket .stub .sc-title{font-family:'Noto Serif KR',serif;font-size:calc(26px*var(--fs,1));font-weight:700;letter-spacing:.04em;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ticket .stub .sc-catch{font-size:calc(11px*var(--fs,1));color:var(--faint);letter-spacing:.14em;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ticket .stub .sc-catch::after{content:"";display:block;width:34px;height:2px;background:var(--accent);margin-top:12px}
+.ticket .stub .row{font-size:calc(12px*var(--fs,1));color:var(--sub);display:block;padding:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ticket .stub .row b{color:var(--faint);font-weight:600;display:inline-block;min-width:48px;letter-spacing:.05em}
+/* 底部文字 = 連動首頁副標題（v1.9），單行省略 */
+.ticket .stub .adm{margin-top:auto;padding-top:8px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;gap:10px;font-size:calc(9px*var(--fs,1)*var(--fs-logosub,1));color:var(--faint);letter-spacing:.2em;font-family:var(--font-logosub,var(--sans))}
+.ticket .stub .adm span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ticket .stub .adm span:last-child{white-space:nowrap;flex-shrink:0}
+.tagside{padding:16px}
+.tagside h4{font-size:calc(10.5px*var(--fs,1));letter-spacing:.15em;color:var(--faint);margin-bottom:10px}
+.tagside .tag{display:flex;justify-content:space-between;padding:7px 9px;font-size:calc(12px*var(--fs,1));border-radius:7px;cursor:var(--cur-pointer,pointer);transition:.13s}
+.tagside .tag:hover{background:#eef0f2}
+.tagside .tag.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff)}
+.tagside .tag small{color:var(--faint);font-size:calc(10px*var(--fs,1))}
+.tagside .tag.on small{color:var(--btn-dark-fg,#aab0ba);opacity:.65}
+/* 日誌內文檢視器 — 隔離渲染（iframe sandbox） */
+.log-frame{width:100%;height:65vh;border:none;border-radius:var(--radius-s);background:transparent;display:block} /* 高度在查看前使用預設值 — 內部可捲動，查看後會完整展開 */
+/* TRPG 基本型列表 — 每列兩個（v2.0 使用者確認） */
+/* .panel.flush 的上下 4px padding 會露出淡色面板，像是一條薄薄的白帶
+   （使用者發現 —「按基本型後上方出現奇怪的白色區域」）。移除它，讓列表直接貼齊面板邊緣 */
+.panel.flush.trpg-basic{padding:0}
+.trpg-basic{display:grid;grid-template-columns:1fr 1fr}
+.trpg-basic .list-item{min-width:0}
+@media (max-width:900px){.trpg-basic{grid-template-columns:1fr}}
+.log-plain{white-space:pre-wrap;font-size:calc(13px*var(--fs,1));line-height:1.8;color:#2c3037;font-family:var(--sans)}
+
+/* ---------- 留言板共用（4.2） ---------- */
+.toolrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+/* 即使因換行讓搜尋・按鈕組合移到下一行，也維持靠右對齊（v1.9 使用者要求） */
+.toolrow > :last-child{margin-left:auto}
+.panel.flush{overflow:hidden;padding:4px 0}
+.board-list{padding:6px 0}
+.brow{display:grid;grid-template-columns:70px 1fr 90px 90px;gap:12px;align-items:center;padding:13px 20px;border-bottom:1px solid var(--line);font-size:calc(13px*var(--fs,1));cursor:var(--cur-pointer,pointer);transition:.13s}
+/* 將標籤放在標題欄最右側（v2.0 使用者要求 — 作者在左側）。
+   如果另外建立欄位，每列的 Grid 都是獨立的，作者欄會錯位 — 因此在標題欄內推動 */
+.brow .tcell{min-width:0;display:flex;align-items:center;gap:10px}
+.brow .tcell>b{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.brow .tags{flex-shrink:0;max-width:45%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:calc(10.5px*var(--fs,1))}
+.brow .tags i{font-style:normal;color:color-mix(in srgb,var(--accent) 65%,var(--faint));margin-left:7px}
+.brow .tags i:first-child{margin-left:0}
+@media (max-width:640px){.brow .tags{display:none}} /* 狹窄畫面優先顯示標題 */
+/* 混入 Meta 列中的標籤顯示（v2.0 — 圖庫卡片・列表・詳細頁面） */
+.tag-in{font-style:normal;color:color-mix(in srgb,var(--accent) 65%,var(--faint));margin-left:7px}
+.brow:last-child{border-bottom:none}
+.brow:hover{background:#f4f5f7}
+.brow .cat{font-size:calc(10px*var(--fs,1));text-align:center}
+.brow .who,.brow .dt{font-size:calc(11.5px*var(--fs,1));color:var(--faint);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow>b{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.brow b .cmt{color:var(--accent);font-size:calc(11px*var(--fs,1));margin-left:5px}
+/* 留言板票券型面板（5.2 v1.9）— 左側 16:9 縮圖＋裁切線＋右側文章資訊 */
+.bticket{display:grid;grid-template-columns:200px 1fr;background:var(--panel);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;cursor:var(--cur-pointer,pointer);box-shadow:var(--sh-sm);transition:.2s;position:relative}
+.bticket:hover{transform:translateY(-2px)}
+.bticket .bt-thumb{position:relative;min-height:calc(200px*9/16);overflow:hidden;border-right:2px dashed var(--line)}
+.bticket .bt-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.bticket .bt-ph{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,#eceef1,#dfe2e7);font-family:var(--serif);font-size:calc(34px*var(--fs,1));color:var(--faint);letter-spacing:.1em}
+.bticket .bt-body{padding:14px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.bticket .bt-title{font-family:'Noto Serif KR',serif;font-size:calc(16.5px*var(--fs,1));font-weight:700;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bticket .bt-title .cmt{color:var(--accent);font-size:calc(11px*var(--fs,1));margin-left:6px;font-family:var(--sans)}
+.bticket .bt-meta{margin-top:auto;font-size:calc(11px*var(--fs,1));color:var(--faint);letter-spacing:.05em}
+@media(max-width:620px){
+  .bticket{grid-template-columns:118px 1fr}
+  .bticket .bt-thumb{min-height:calc(118px*9/16)}
+  .bticket .bt-title{font-size:calc(14.5px*var(--fs,1))}
+}
+/* 文章內容渲染（MD/HTML 共用） */
+.post-body{font-size:calc(14.5px*var(--fs,1));line-height:1.85;color:#2c3037;word-break:break-word}
+/* 空白段落也維持一行高度（v2.0 使用者回報 — 「按 Enter 不太有效」）。
+   編輯器的空白行會以 <p></p> 儲存，但原樣會因高度為 0 而在發布文章中消失 */
+.post-body p:empty::after,.prose p:empty::after,.html-body p:empty::after{content:"\00a0"}
+.post-body h1,.post-body h2,.post-body h3{margin:18px 0 8px;line-height:1.4}
+.post-body h1{font-size:calc(22px*var(--fs,1))}.post-body h2{font-size:calc(19px*var(--fs,1))}.post-body h3{font-size:calc(16.5px*var(--fs,1))}
+.post-body p{margin:8px 0}
+/* 空白行（v2.0 使用者發現）— 編輯器建立的空白段落沒有內容，高度為 0，所以看起來會直接消失。
+   放入一個不可見的空白字元，建立一行的空間 */
+.post-body p:empty::before{content:"\00a0"}
+.post-body img{max-width:100%;border-radius:9px}
+/* 文章內圖片 — 透過游標提示可以點擊放大檢視（v2.0 使用者要求）。
+   用連結包住的圖片則有其他用途，因此排除 */
+.html-body img{cursor:zoom-in}
+.html-body a img{cursor:inherit}
+.post-body a{color:var(--accent);text-decoration:underline}
+.post-body blockquote{border-left:3px solid var(--line);padding:2px 14px;color:var(--sub);margin:10px 0}
+.post-body pre{background:#f0f1f3;border-radius:9px;padding:12px 14px;font-size:calc(12px*var(--fs,1));overflow-x:auto;margin:10px 0}
+.post-body code{background:#f0f1f3;border-radius:4px;padding:1px 5px;font-size:calc(12px*var(--fs,1))}
+.post-body ul,.post-body ol{padding-left:22px;margin:8px 0}
+.post-body hr{border:none;border-top:1px solid var(--line);margin:16px 0}
+.post-body table{border-collapse:collapse;margin:10px 0}
+.post-body th,.post-body td{border:1px solid var(--line);padding:6px 12px;font-size:calc(12.5px*var(--fs,1))}
+/* 留言 */
+.cmt{margin-bottom:14px;font-size:calc(13.5px*var(--fs,1))}
+.cmt b{font-size:calc(13px*var(--fs,1));margin-right:6px}
+.cmt small{color:var(--faint);font-size:calc(11px*var(--fs,1));margin-left:5px}
+.cmt p{color:#3a3f47;margin-top:3px;line-height:1.65;white-space:pre-line}
+.cmt.reply-depth{margin-left:22px;padding-left:12px;border-left:2px solid var(--line)}
+.cmt-input{border-top:1px solid var(--line);padding:12px;display:flex;gap:8px}
+.cmt-input .btn{white-space:nowrap}
+/* 特殊字元預設樣式彈窗（v1.9）— SymbolInput */
+.sym-pop{position:fixed;z-index:120;padding:8px;background:var(--panel-solid,#fff);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh-dd)} /* body Portal — 不會被面板 overflow 裁切（v1.9） */
+.sym-pop .sym-tabs{display:flex;gap:2px;margin-bottom:6px}
+.sym-pop .sym-tabs button{padding:4px 8px;border-radius:7px;font-size:10px;color:var(--faint);transition:.12s;white-space:nowrap}
+.sym-pop .sym-tabs button:hover{color:var(--ink)}
+.sym-pop .sym-tabs button.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff)}
+.sym-pop .sym-grid{display:grid;grid-template-columns:repeat(8,30px);gap:2px}
+.sym-pop .sym-grid button{width:30px;height:30px;border-radius:7px;font-size:15px;display:grid;place-items:center;color:var(--ink);transition:.12s}
+.sym-pop .sym-grid button:hover{background:var(--dd-hv,rgba(127,127,127,.14))}
+/* 委託表單建立器（v1.9）— 項目卡片 */
+.cmf-field{border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:10px;background:color-mix(in srgb,var(--panel) 45%,transparent)}
+/* 委託詳細頁面 — 表單顯示 */
+.cmf-view{display:grid;gap:14px}
+.cmf-view .q{font-size:calc(13px*var(--fs,1));font-weight:600}
+.cmf-view .q .req{color:var(--accent);margin-left:3px}
+.cmf-view .qd{font-size:calc(11px*var(--fs,1));color:var(--faint);margin-top:2px}
+.cmf-view .op{display:flex;gap:8px;align-items:center;font-size:calc(12px*var(--fs,1));color:var(--sub);padding:3px 0 0 4px}
+.cmf-view .op .mk{color:var(--faint);font-size:calc(11px*var(--fs,1))}
+/* 訪客身分列（v1.9）— 允許訪客留言時，GUEST Chip＋暱稱・密碼位於同一行 */
+.guest-id{display:flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--line);border-radius:9px;background:color-mix(in srgb,var(--panel) 55%,transparent)}
+.guest-id .gi-tag{font-size:calc(8.5px*var(--fs,1));letter-spacing:.14em;font-weight:700;color:var(--faint);border:1px dashed var(--line);padding:2.5px 8px;border-radius:999px;flex-shrink:0;font-family:var(--sans)}
+.guest-id input{flex:1;min-width:0;border:none;background:transparent;font-size:calc(11.5px*var(--fs,1));color:var(--ink);font-family:var(--sans);outline:none}
+.guest-id input::placeholder{color:var(--faint)}
+.guest-id .gi-sep{width:1px;height:14px;background:var(--line);flex-shrink:0}
+/* 訪客模式留言輸入 — 在分隔線下方以 [訪客列／輸入列] 垂直排列（修正載入紀錄中的不自然樣式） */
+.cmt-input.guest{flex-direction:column;align-items:stretch}
+.cmt-input.guest .ci-row{display:flex;gap:8px}
+/* 撰寫文章 */
+.write-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+/* 表單底部按鈕列 — 平時填滿右側卡片寬度，切換成單欄後維持按鈕原尺寸並靠右對齊（v1.9 使用者確認） */
+.form-actions{display:flex;gap:8px}
+.form-actions .btn{flex:1;justify-content:center}
+.form-actions .btn-accent{flex:1.6}
+/* 卡片在最大尺寸（頁面寬度 1180px）開始變形時，將右側卡片移到下方
+   （v1.9 使用者確認 — 稍微縮小就會讓兩欄不好看）。卡片使用完整橫向寬度，只有按鈕維持原尺寸並靠右對齊 */
+@media (max-width:1180px){
+  .write-grid{grid-template-columns:1fr}
+  .form-actions{justify-content:flex-end}
+  .form-actions .btn{flex:0 0 auto;padding:9px 26px}
+}
+.preview-box{border:1.5px dashed var(--line);border-radius:var(--radius-s);padding:16px;min-height:120px;background:#fff}
+.preview-box .pv-label{font-size:calc(10px*var(--fs,1));letter-spacing:.16em;color:var(--faint);margin-bottom:8px}
+/* 訪客留言（4.7） */
+.gb-item{padding:16px 18px;border-bottom:1px solid var(--line)}
+.gb-item:last-child{border-bottom:none}
+.gb-item .hd{display:flex;justify-content:space-between;font-size:calc(12px*var(--fs,1));margin-bottom:6px}
+.gb-item .hd b{font-size:calc(13px*var(--fs,1))}
+.gb-item .hd small{color:var(--faint)}
+.gb-item p{font-size:calc(12.5px*var(--fs,1));line-height:1.7;color:#3a3f47;white-space:pre-line}
+.gb-item .reply{margin-top:10px;padding:10px 13px;background:#f2f3f5;border-radius:9px;font-size:calc(12px*var(--fs,1));color:#3a3f47;white-space:pre-line}
+.gb-item .reply b{color:var(--accent);font-size:calc(11px*var(--fs,1));letter-spacing:.05em;display:block;margin-bottom:3px}
+
+/* ---------- 區段控制元件 ---------- */
+/* 未選取的一側背景・文字由設計分頁設定（v2.0 使用者要求）· 已選取的一側維持深色按鈕色 */
+.seg{display:inline-flex;background:var(--seg-bg,#f0f1f3);border:1px solid var(--line-dark);border-radius:9px;padding:3px}
+.seg button{padding:6px 14px;font-size:calc(11.5px*var(--fs,1));color:var(--seg-fg,#8a8f98);border-radius:7px;transition:.15s}
+/* 選取 Chip = 連動深色按鈕 3 色（v1.9 使用者確認 — 與核取方塊使用相同 Token） */
+.seg button.on{background:var(--btn-dark,var(--panel-solid));color:var(--btn-dark-fg,var(--ink))}
+.seg.in-panel{border-color:transparent}
+.mini-seg{display:inline-flex;background:var(--seg-bg,#f0f1f3);border-radius:7px;padding:2px}
+.mini-seg button{padding:4px 9px;font-size:calc(10px*var(--fs,1));border-radius:5px;color:var(--seg-fg,#8a8f98);transition:.13s}
+.mini-seg button.on{background:var(--btn-dark,var(--ink));color:var(--btn-dark-fg,#fff)}
+.mini-seg.icon-seg button{padding:4px 7px}
+.mini-seg.icon-seg svg{width:12px;height:12px;display:block;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+
+/* ---------- 環境設定（第 5 章） ---------- */
+.settings-layout{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;min-width:1060px}
+/* 環境設定在 1060px 以下不再縮小（v1.9 — 維持控制元件對齊，狹窄視窗使用橫向捲動） */
+#appMain:has(.settings-layout){overflow-x:auto}
+.set-nav{padding:10px;align-self:start}
+/* 統一右側設定面板尺寸 — 內容變長時不使用內部捲動，而是向下延伸（v1.9） */
+.settings-layout > .panel:not(.set-nav){min-height:calc(100vh - 250px);width:100%;box-sizing:border-box}
+.set-nav button{display:block;width:100%;text-align:left;padding:10px 13px;font-size:calc(12.5px*var(--fs,1));border-radius:8px;color:var(--sub);transition:.14s}
+.set-nav button:hover{background:#eef0f2;color:var(--ink)}
+.set-nav button.on{background:var(--ink);color:#fff}
+.set-sec{margin-bottom:26px}
+.set-sec h3{font-size:calc(13px*var(--fs,1));letter-spacing:.08em;margin-bottom:4px;color:var(--ink)}
+.set-sec .d{font-size:calc(11px*var(--fs,1));color:var(--faint);margin-bottom:13px}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:12px 0;border-bottom:1px solid var(--line)}
+/* 左側預覽（徽章等）即使視窗變窄也不會被壓縮 — 讓右側控制元件透過換行讓出空間（v1.9） */
+.set-row .l{flex-shrink:0}
+.set-row:last-child{border:none}
+.set-row .l b{font-size:calc(12.5px*var(--fs,1));display:block;color:var(--ink)}
+.set-row .l small{font-size:calc(10.5px*var(--fs,1));color:var(--faint)}
+/* 顏色輸入配對（hex＋圓形按鈕）組合 — 靠右對齊 */
+.cp-group{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+/* 顏色項目 2×2 對齊 — 讓標籤・欄位上下對齊（例如搜尋框 4 色） */
+.cp-grid2{display:grid;grid-template-columns:auto auto auto auto;gap:10px 12px;align-items:center;justify-items:end}
+.cp-grid2 .cp-lb{justify-self:end}
+.cp-lb{font-size:calc(10.5px*var(--fs,1));color:var(--faint)}
+.color-field .k-input{width:86px;font-size:calc(11.5px*var(--fs,1));padding:7px 9px}
+/* 將多組標籤＋顏色輸入固定在同一行 — 狹窄面板中輸入框會縮小，不會掉到第二行（v1.9 使用者要求） */
+.cf-row{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;min-width:0}
+.cf-row .cp-lb{flex-shrink:0}
+.cf-row .color-field{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
+.cf-row .color-field .k-input{width:100%;min-width:52px;flex:1}
+/* 步進器・徽章預覽無法縮小 — 狹窄面板中被壓縮時，內部的＋按鈕・文字會被切掉。
+   防止被壓縮，改為讓無法在同一行放下的組合透過 .cf-stack 移到下一行（v2.0 使用者要求） */
+.cf-row .k-step,.cf-row .pill{flex-shrink:0}
+.cf-stack{display:grid;gap:8px}
+
+/* 中等寬度（621~960px）：維持結構，只縮小寬度（v1.8） */
+@media (max-width:960px){
+  body:not(.main-fixed) .main-grid{grid-template-columns:190px 1fr 220px}
+  .ticket{grid-template-columns:300px 1fr}
+  .ticket .stub-line{left:300px}
+  .ticket{--notch-x:301px}
+  .ticket .wide{min-height:calc(300px*9/16)}
+  .ticket .stub{padding:16px 16px 12px 24px}
+  .ticket .stub .sc-title{font-size:calc(18px*var(--fs,1))}
+  .trpg-layout{grid-template-columns:1fr 150px}
+  .roadview-item{grid-template-columns:1fr}
+  .cmt-side{border-left:none;border-top:1px solid var(--line)}
+  /* 例外 — 角色詳細頁面：960px 時直接切換為手機版型（v1.9）
+     順序：插圖 → 資訊 → 圖示分頁（橫向，最下方） */
+  .profile-wrap{grid-template-columns:1fr;min-height:0;height:auto;align-items:start}
+  .profile-center{order:1;position:relative;top:auto;height:auto;min-height:0;aspect-ratio:3/4;width:100%;max-width:560px;margin:0 auto}
+  .profile-info{order:2;max-width:560px;margin:0 auto;width:100%}
+  .side-icons{order:3;position:static;flex-direction:row;flex-wrap:wrap;padding:0;gap:8px;justify-content:center}
+  /* 例外 — 自設關係詳細頁面：960px 時直接切換為垂直堆疊（v1.9） */
+  .rel-body{grid-template-columns:1fr;max-width:560px;margin-left:auto;margin-right:auto}
+  .rel-center{order:-1}
+  .rel-hero h1{font-size:calc(44px*var(--fs,1))}
+  .rel-hero .quote{position:static;display:block;margin-top:4px}
+  .qa-wrap{grid-template-columns:1fr;height:auto}
+  .qa-list{border-left:none;padding-left:0;max-height:300px}
+}
+
+/* 手機版（第 8 章 — 620px 切換） */
+@media (max-width:620px){
+  .gnb{display:none}
+  .topbar{padding:0 16px;gap:12px}
+  /* gnb(flex:1) 隱藏後右側推擠消失 — 恢復通知・個人資料／登入靠右對齊（第 8 章） */
+  .user-wrap,.login-link{margin-left:auto}
+  .page{padding:16px 16px 90px}
+  .page-head h1{font-size:calc(24px*var(--fs,1))}
+  /* 頁面標題手機版選項（v1.9 使用者要求）— 若為「省略」則僅在手機版隱藏標題・說明
+     （狀態・提示文字與 PC 版相同，一律顯示） */
+  .page-head h1{display:var(--ph-title-m,block)}
+  .page-head p{display:var(--ph-desc-m,block)}
+  .page-head p:not(.editable),.page-head p.gate{display:block}
+  /* 搜尋・撰寫按鈕移到標題下方的寬度 — 即使移到下方也靠右對齊（v1.9 使用者要求） */
+  .page-head{grid-template-columns:1fr}
+  .head-actions{position:static;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+  body.main-fixed .page-main-wrap{min-width:0;margin-left:0} /* 手機版檢視中解除固定 Canvas（v1.9） */
+  body.main-fixed #appMain,body.edit-on #appMain{overflow-x:hidden} /* 手機版切換時移除橫向捲動 */
+  .main-grid{grid-template-columns:1fr}
+  .main-grid:not(.abs) > *{display:contents} /*（舊欄位結構）拆解欄位 → Widget 垂直單欄。abs Canvas 中 Widget 直接掛在其上，因此不需要拆解（v1.9） */
+  .menu-list{display:block}
+  /* 手機版忽略 PC 配置值（偏移・絕對座標・px 尺寸）— 恢復為流程堆疊（第 8 章 · v1.9） */
+  .wgt{transform:none !important;width:auto !important;height:auto !important;position:static !important;left:auto !important;top:auto !important;margin-bottom:10px !important}
+  .main-grid.abs{display:grid !important;height:auto !important}
+  .settings-layout{grid-template-columns:1fr}
+  /* BGM — 緊貼畫面底部的纖薄全寬列（第 8 章・4.1 v1.9）：省略音量，播放控制靠右對齊 */
+  .bgm,.bgm.bgm-left{left:0;right:0;bottom:0;border-radius:0;border-left:none;border-right:none;border-bottom:none;padding:7px 14px;gap:10px}
+  .bgm .vol,.bgm .fold-btn{display:none}
+  .bgm .title{flex:1;max-width:none}
+  .bgm .title .mq{max-width:none}
+  .bgm .ctrl{margin-left:auto}
+  /* 即使儲存狀態為摺疊（從 PC 版摺疊後進入），手機版仍維持全寬列 */
+  .bgm.folded{padding:7px 14px;gap:10px;cursor:default}
+  .bgm.folded .title{display:block}
+  .bgm.folded .ctrl{display:flex}
+  /* 手機版 BGM 更扁平 — 不使用唱片（磁碟），標題＋控制元件維持單行（v1.9 使用者要求） */
+  .bgm .disc,.bgm.folded .disc{display:none}
+  .bgm,.bgm.bgm-left,.bgm.folded{padding:4px 12px}
+  .bgm .ctrl button{width:24px;height:24px}
+
+  /* 角色列表 — 手機版 1 列 3 個（v1.9 使用者確認） */
+  .chars-grid{grid-template-columns:repeat(3,1fr);gap:10px}
+  /* 自設關係列表 — 手機版 1 列 2 個（v1.9 使用者確認） */
+  .rels-grid{grid-template-columns:1fr 1fr;gap:10px}
+  /* TRPG 角色 — 手機版 1 列 2 個（中等檢視 3 個為 1080px 規則，v1.9 使用者確認） */
+  .tc-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  /* 便利貼記事本 — 列表移到看板下方（v1.9 使用者確認） */
+  .memo-layout{grid-template-columns:1fr}
+  .memoboard{height:440px}
+  /* 行事曆 — 以簡單行程列表取代月曆（v1.9 使用者確認，cal-mlist 由 page.tsx 渲染） */
+  .cal-layout > .panel.cal{display:none}
+  /* TRPG 日誌 — 篩選側欄移到列表下方（手機版使用基本型，而非票券型，v1.9） */
+  .trpg-layout{grid-template-columns:1fr}
+}
+/* 行事曆手機版行程列表 — PC 版隱藏（v1.9） */
+.cal-mlist{display:none}
+@media (max-width:620px){.cal-mlist{display:block}}
+.cal-mlist .ev-row{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px dashed var(--line);font-size:calc(12.5px*var(--fs,1))}
+.cal-mlist .ev-row:last-child{border-bottom:none}
+.cal-mlist .ev-row .dt{font-size:calc(11px*var(--fs,1));color:var(--sub);letter-spacing:.03em;width:74px;flex-shrink:0}
+.cal-mlist .ev-row .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-mlist .ev-row i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* 圖片 Widget 投影片顯示點（v2.0）— 與 Banner 相同形狀，因 Widget 較小所以稍微縮小 */
+.deco-dots{position:absolute;right:8px;bottom:8px;display:flex;gap:4px;z-index:3}
+.deco-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);box-shadow:0 0 3px rgba(0,0,0,.35);transition:.2s;cursor:var(--cur-pointer,pointer)}
+.deco-dots i.on{background:#fff;width:13px;border-radius:3px}
+
+/* 圖片上傳中通知（v2.0）— 與 Toast 相同位置・樣式，稍微往上 */
+.up-busy{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:121;display:flex;align-items:center;gap:9px;padding:10px 18px;border-radius:999px;background:var(--dd-bg);color:var(--dd-fg);font-size:calc(12.5px*var(--fs,1));box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--line-dark);backdrop-filter:blur(8px)}
+.up-spin{width:12px;height:12px;border-radius:50%;border:2px solid var(--line-dark);border-top-color:var(--accent);animation:upSpin .7s linear infinite;flex-shrink:0}
+@keyframes upSpin{to{transform:rotate(360deg)}}

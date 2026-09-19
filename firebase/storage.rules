@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// ============================================================
+// O.HOME Storage 安全規則（圖片・檔案）
+// Firebase 控制台 → Storage → 規則 貼上後按下 [發布]。
+//   · 讀取公開（因為訪客需要查看圖片）
+//   · 上傳・刪除僅限已登入會員
+//   · 阻擋一次上傳超過 20MB 的檔案
+// ============================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /ohome/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 20 * 1024 * 1024;
+      allow delete: if request.auth != null;
+    }
+  }
+}

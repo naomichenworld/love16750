@@ -1,0 +1,80 @@
+rules_version = '2';
+
+// ============================================================
+// O.HOME Firestore 安全規則
+// Firebase 控制台 → Firestore Database → 規則，貼上後按下［發布］。
+//
+// 文件結構
+//   meta/owner            { uid, admins[] }   ← 第一個登入的帳號只能註冊自己一次
+//   profiles/{uid}        { nickname, avatarUrl, avatarColor }
+//   settings/{key}        { value }           ← 主題・選單・字型・首頁 Widget 等
+//   <콘텐츠>/{id}          { data, authorId, visibility, sort }
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownerData() {
+      return get(/databases/$(database)/documents/meta/owner).data;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/meta/owner)
+        && (ownerData().uid == request.auth.uid
+            || (ownerData().keys().hasAny(['admins']) && request.auth.uid in ownerData().admins));
+    }
+
+    // 內容 Collection 列表 — 不在這裡的名稱不具有任何權限
+    function isContent(name) {
+      return name in [
+        'posts', 'guestbook', 'characters', 'relations', 'gallery', 'roadview',
+        'trpg_logs', 'trpg_chars', 'dotori', 'playlog', 'rp_rooms', 'threads',
+        'diary', 'memos', 'commissions', 'applicants', 'moods'
+      ];
+    }
+
+    // ── 指定擁有者（管理員）— 尚未存在時只能進行一次 ──────────────
+    match /meta/owner {
+      allow read: if true;
+      allow create: if signedIn() && !exists(/databases/$(database)/documents/meta/owner);
+      allow update, delete: if isAdmin();
+    }
+
+    // ── 會員個人資料 ─────────────────────────────────────────────
+    match /profiles/{uid} {
+      allow read: if true;
+      allow create, update: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ── 網站設定（讀取公開・寫入僅限管理員） ─────────────────────
+    match /settings/{key} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── 內容 ─────────────────────────────────────────────────
+    match /{coll}/{docId} {
+      // 讀取：完全公開／會員公開（登入）／自己撰寫的內容／管理員
+      allow read: if isContent(coll) && (
+        resource.data.visibility == 'public'
+        || (resource.data.visibility == 'member' && signedIn())
+        || (signedIn() && resource.data.authorId == request.auth.uid)
+        || isAdmin()
+      );
+
+      // 寫入：登入會員 — 只有訪客留言允許未登入訪客也可以留下（暱稱＋密碼方式）
+      allow create: if isContent(coll) && (signedIn() || coll == 'guestbook');
+
+      // 修改・刪除：作者本人或管理員
+      allow update, delete: if isContent(coll)
+        && signedIn()
+        && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+  }
+}
